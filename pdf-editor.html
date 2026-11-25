@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Online PDF Editor — Merge, Split, Reorder, Rotate &amp; Crop Pages | Mindiw Toolbox</title>
+<meta name="description" content="Open a PDF or your own scans and edit it page by page: merge, split, reorder, rotate, crop, add page numbers, extract text and save pages as images. Free and private — your files stay on your device.">
+<link rel="canonical" href="https://mindiwdigital.github.io/toolbox/pdf-editor.html">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Mindiw Toolbox">
+<meta property="og:title" content="Online PDF Editor — Merge, Split, Reorder, Rotate &amp; Crop Pages">
+<meta property="og:description" content="Merge, split, reorder, rotate and crop PDF pages, add page numbers and extract text — all in your browser, with no upload.">
+<meta property="og:url" content="https://mindiwdigital.github.io/toolbox/pdf-editor.html">
+<meta property="og:image" content="https://mindiwdigital.github.io/toolbox/logo.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Online PDF Editor — Merge, Split, Reorder, Rotate &amp; Crop Pages">
+<meta name="twitter:description" content="Merge, split, reorder, rotate and crop PDF pages, add page numbers and extract text — all in your browser, with no upload.">
+<meta name="twitter:image" content="https://mindiwdigital.github.io/toolbox/logo.png">
+<link rel="icon" href="logo.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="theme-color" content="#080d19">
+<style>
+:root{--bg:#080d19;--panel:#101a2b;--line:#26334a;--text:#edf3ff;--muted:#93a2bb;--accent:#79a9ff;--accent2:#53dfc0}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(ellipse at 85% -10%,#1b3158 0,transparent 42%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.65}
+a{color:var(--accent)}
+.wrap{max-width:820px;margin:0 auto;padding:0 18px}
+.site-head{border-bottom:1px solid var(--line);background:#080d19ef;position:sticky;top:0;z-index:5}
+.site-head .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:13px;padding-bottom:13px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:800}
+.brandmark{width:36px;height:36px;border-radius:12px;background:linear-gradient(145deg,#8bbaff,#4c6dff);display:grid;place-items:center;color:#071126;font-weight:900}
+.brand small{display:block;color:var(--muted);font-weight:600;font-size:11px;letter-spacing:1px;text-transform:uppercase}
+.head-link{font-size:13px;font-weight:700;text-decoration:none;color:var(--text);border:1px solid var(--line);border-radius:11px;padding:8px 12px;background:var(--panel)}
+h1{font-size:30px;line-height:1.22;margin:24px 0 10px}
+h2{font-size:20px;margin:30px 0 8px}
+h3{font-size:16px;margin:20px 0 6px}
+.lede{font-size:17px;color:#c3d1e8;margin:0 0 6px}
+.cta{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#8bbaff,#6b8dff);color:#071225;font-weight:800;padding:13px 20px;border-radius:14px;text-decoration:none;margin:16px 0 4px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px 18px;margin:14px 0}
+ul{padding-left:20px;margin:8px 0}li{margin:6px 0}
+ol{padding-left:22px;margin:8px 0}
+.faq dt{font-weight:750;margin-top:15px}.faq dd{margin:5px 0 0;color:var(--muted)}
+.pages{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0 4px}
+.pages a{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:8px 12px;text-decoration:none;font-size:13px;font-weight:650}
+.foot{border-top:1px solid var(--line);margin-top:40px;padding:22px 0 34px;color:var(--muted);font-size:13px}
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "name": "Edit PDF Pages in Your Browser",
+      "url": "https://mindiwdigital.github.io/toolbox/pdf-editor.html",
+      "description": "Merge, split, reorder, rotate and crop PDF pages, add page numbers, extract text and save pages as images, entirely on your device.",
+      "isPartOf": {"@type": "WebSite", "name": "Mindiw Toolbox", "url": "https://mindiwdigital.github.io/toolbox/"}
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {"@type": "Question", "name": "Can I merge several PDFs into one?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Import multiple PDF files and their pages are added to the same document in order. You can also mix imported PDF pages with your own photo scans."}},
+        {"@type": "Question", "name": "How do I split a PDF?", "acceptedAnswer": {"@type": "Answer", "text": "Use the Split pages action to save each page of the current document as a separate PDF and download them together in a ZIP file."}},
+        {"@type": "Question", "name": "Can I reorder and rotate pages?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Open a page in the full-page editor and use Move up, Move down or Rotate to change its position and orientation."}},
+        {"@type": "Question", "name": "Can I crop a scanned page?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The crop tool shows four draggable corners so you can select the exact page area and straighten it."}},
+        {"@type": "Question", "name": "Is my PDF uploaded to a server?", "acceptedAnswer": {"@type": "Answer", "text": "No. PDFs are loaded and rebuilt in your browser. Text extraction and editing happen on your device, and your files are not uploaded."}}
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<header class="site-head"><div class="wrap">
+  <a class="brand" href="./index.html"><span class="brandmark">M</span><span>Mindiw Toolbox<small>Scanner &amp; PDF Studio</small></span></a>
+  <a class="head-link" href="./index.html">Open the app</a>
+</div></header>
+<main class="wrap">
+  <h1>Edit PDF pages in your browser</h1>
+  <p class="lede">Load an existing PDF or build one from your own scans, then tidy every page — merge, split, reorder, rotate or crop — before you export. Your files never leave your device.</p>
+  <a class="cta" href="./index.html">Open PDF Studio &rarr;</a>
+
+  <h2>What you can do</h2>
+  <ul>
+    <li><strong>Merge</strong> — combine several PDFs, or PDF pages and photo scans, into one document.</li>
+    <li><strong>Split</strong> — export every page as its own PDF and download them in a ZIP.</li>
+    <li><strong>Reorder</strong> — move pages up or down until the sequence is right.</li>
+    <li><strong>Rotate</strong> — turn any page in 90° steps, individually.</li>
+    <li><strong>Crop</strong> — drag the page corners to trim edges or straighten a photo.</li>
+    <li><strong>Page numbers</strong> — add a small "page / total" footer on export.</li>
+    <li><strong>Extract text</strong> — run text recognition on your pages and copy or download the result.</li>
+    <li><strong>Save pages</strong> — export a single page as an image file.</li>
+  </ul>
+
+  <h2>Importing an existing PDF</h2>
+  <p>Choose <strong>Open PDF</strong> in PDF Studio and select one or more files. Page thumbnails are generated so you can see exactly what you are working with, and imported pages keep their original quality on export. Password-protected or damaged files cannot be opened.</p>
+
+  <div class="card">
+    <h3>Building a document from scans</h3>
+    <p>You can start from the camera scanner or your photo library and add imported PDF pages into the same document. That makes it easy to place a signed cover page in front of scanned pages, or append a downloaded form to your own photos.</p>
+  </div>
+
+  <h2>Exporting and sharing</h2>
+  <p>Give the document a name, pick A4 or US Letter, set the image quality and create the PDF. The finished file downloads to your device, is saved to the app's local <em>My Files</em> library for reuse, and can be shared directly with your phone's share sheet where supported.</p>
+
+  <h2>Frequently asked questions</h2>
+  <dl class="faq">
+    <dt>Can I merge several PDFs into one?</dt>
+    <dd>Yes. Import multiple PDF files and their pages are added to the same document in order. You can also mix imported PDF pages with your own photo scans.</dd>
+    <dt>How do I split a PDF?</dt>
+    <dd>Use the Split pages action to save each page of the current document as a separate PDF and download them together in a ZIP file.</dd>
+    <dt>Can I reorder and rotate pages?</dt>
+    <dd>Yes. Open a page in the full-page editor and use Move up, Move down or Rotate to change its position and orientation.</dd>
+    <dt>Can I crop a scanned page?</dt>
+    <dd>Yes. The crop tool shows four draggable corners so you can select the exact page area and straighten it.</dd>
+    <dt>Is my PDF uploaded to a server?</dt>
+    <dd>No. PDFs are loaded and rebuilt in your browser. Text extraction and editing happen on your device, and your files are not uploaded.</dd>
+  </dl>
+
+  <h2>Related tools</h2>
+  <div class="pages">
+    <a href="./scan-documents.html">Scan documents</a>
+    <a href="./photos-to-pdf.html">Photos to PDF</a>
+    <a href="./image-tools.html">Image tools</a>
+    <a href="./qr-code-generator.html">QR code generator</a>
+  </div>
+  <a class="cta" href="./index.html">Edit a PDF &rarr;</a>
+</main>
+<footer class="foot"><div class="wrap">
+  <div class="pages">
+    <a href="./index.html">Home</a>
+    <a href="./scan-documents.html">Scan documents</a>
+    <a href="./photos-to-pdf.html">Photos to PDF</a>
+    <a href="./pdf-editor.html">PDF editor</a>
+    <a href="./image-tools.html">Image tools</a>
+    <a href="./qr-code-generator.html">QR generator</a>
+  </div>
+  <p>Mindiw Toolbox — free, private, on-device document and PDF tools. Your files are processed in your browser and are never uploaded.</p>
+</div></footer>
+</body>
+</html>

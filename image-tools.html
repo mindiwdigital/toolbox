@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Image Tools — Resize, Compress &amp; Convert JPG, PNG, WebP | Mindiw Toolbox</title>
+<meta name="description" content="Resize images by pixel dimensions, compress them to a smaller file size and convert between JPG, PNG and WebP — free, in your browser, with no upload.">
+<link rel="canonical" href="https://mindiwdigital.github.io/toolbox/image-tools.html">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Mindiw Toolbox">
+<meta property="og:title" content="Image Tools — Resize, Compress &amp; Convert JPG, PNG, WebP">
+<meta property="og:description" content="Resize, compress and convert images between JPG, PNG and WebP in your browser — free, private and with no upload.">
+<meta property="og:url" content="https://mindiwdigital.github.io/toolbox/image-tools.html">
+<meta property="og:image" content="https://mindiwdigital.github.io/toolbox/logo.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Image Tools — Resize, Compress &amp; Convert JPG, PNG, WebP">
+<meta name="twitter:description" content="Resize, compress and convert images between JPG, PNG and WebP in your browser — free, private and with no upload.">
+<meta name="twitter:image" content="https://mindiwdigital.github.io/toolbox/logo.png">
+<link rel="icon" href="logo.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="theme-color" content="#080d19">
+<style>
+:root{--bg:#080d19;--panel:#101a2b;--line:#26334a;--text:#edf3ff;--muted:#93a2bb;--accent:#79a9ff;--accent2:#53dfc0}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(ellipse at 85% -10%,#1b3158 0,transparent 42%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.65}
+a{color:var(--accent)}
+.wrap{max-width:820px;margin:0 auto;padding:0 18px}
+.site-head{border-bottom:1px solid var(--line);background:#080d19ef;position:sticky;top:0;z-index:5}
+.site-head .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:13px;padding-bottom:13px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:800}
+.brandmark{width:36px;height:36px;border-radius:12px;background:linear-gradient(145deg,#8bbaff,#4c6dff);display:grid;place-items:center;color:#071126;font-weight:900}
+.brand small{display:block;color:var(--muted);font-weight:600;font-size:11px;letter-spacing:1px;text-transform:uppercase}
+.head-link{font-size:13px;font-weight:700;text-decoration:none;color:var(--text);border:1px solid var(--line);border-radius:11px;padding:8px 12px;background:var(--panel)}
+h1{font-size:30px;line-height:1.22;margin:24px 0 10px}
+h2{font-size:20px;margin:30px 0 8px}
+h3{font-size:16px;margin:20px 0 6px}
+.lede{font-size:17px;color:#c3d1e8;margin:0 0 6px}
+.cta{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#8bbaff,#6b8dff);color:#071225;font-weight:800;padding:13px 20px;border-radius:14px;text-decoration:none;margin:16px 0 4px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px 18px;margin:14px 0}
+ul{padding-left:20px;margin:8px 0}li{margin:6px 0}
+ol{padding-left:22px;margin:8px 0}
+.faq dt{font-weight:750;margin-top:15px}.faq dd{margin:5px 0 0;color:var(--muted)}
+.pages{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0 4px}
+.pages a{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:8px 12px;text-decoration:none;font-size:13px;font-weight:650}
+.foot{border-top:1px solid var(--line);margin-top:40px;padding:22px 0 34px;color:var(--muted);font-size:13px}
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "name": "Resize, Compress and Convert Images",
+      "url": "https://mindiwdigital.github.io/toolbox/image-tools.html",
+      "description": "Resize images by pixel, compress them to a smaller size and convert between JPG, PNG and WebP in the browser.",
+      "isPartOf": {"@type": "WebSite", "name": "Mindiw Toolbox", "url": "https://mindiwdigital.github.io/toolbox/"}
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {"@type": "Question", "name": "How do I resize an image to exact pixels?", "acceptedAnswer": {"@type": "Answer", "text": "Open Image Tools, choose an image and type the width and height you want in pixels, then download the processed image."}},
+        {"@type": "Question", "name": "How do I compress an image to make the file smaller?", "acceptedAnswer": {"@type": "Answer", "text": "Choose JPG as the output format and lower the quality slider. A lower quality produces a smaller file; adjust until the size and clarity suit you."}},
+        {"@type": "Question", "name": "Which image formats can I convert between?", "acceptedAnswer": {"@type": "Answer", "text": "You can convert to and from JPG, PNG and WebP, depending on the formats your browser supports. WebP is often the smallest for the web."}},
+        {"@type": "Question", "name": "Is my image uploaded to a server?", "acceptedAnswer": {"@type": "Answer", "text": "No. Resizing, compressing and converting all happen in your browser using canvas, so your image never leaves your device."}},
+        {"@type": "Question", "name": "Is there a size limit for images?", "acceptedAnswer": {"@type": "Answer", "text": "Image dimensions are capped at 12000 pixels per side. Very large images also depend on your device's available memory."}}
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<header class="site-head"><div class="wrap">
+  <a class="brand" href="./index.html"><span class="brandmark">M</span><span>Mindiw Toolbox<small>Tools for everyday files</small></span></a>
+  <a class="head-link" href="./index.html">Open the app</a>
+</div></header>
+<main class="wrap">
+  <h1>Resize, compress and convert images</h1>
+  <p class="lede">Change image dimensions, shrink the file size or switch between JPG, PNG and WebP — quickly and privately on your own device, right in the browser.</p>
+  <a class="cta" href="./index.html">Open Image Tools &rarr;</a>
+
+  <h2>What you can do</h2>
+  <div class="card">
+    <h3>Resize</h3>
+    <p>Set the exact width and height in pixels to shrink a photo for the web or enlarge a thumbnail. Dimensions are capped at 12000&nbsp;px per side, and the app shows the original size so you can compare before downloading.</p>
+  </div>
+  <div class="card">
+    <h3>Compress</h3>
+    <p>Export as JPG and use the quality slider to reduce file size. This is the quickest way to make a photo small enough to email or upload while keeping it easy to view.</p>
+  </div>
+  <div class="card">
+    <h3>Convert</h3>
+    <p>Switch formats between JPG, PNG and WebP. Use PNG when you need lossless quality, JPG for photographs, and WebP for the smallest files on modern websites.</p>
+  </div>
+
+  <h2>How to use Image Tools</h2>
+  <ol>
+    <li>Open Mindiw Toolbox and go to <strong>Image Tools</strong>.</li>
+    <li>Choose an image from your device.</li>
+    <li>Enter a new width and height, pick a format and set the quality.</li>
+    <li>Tap <strong>Download processed image</strong> to save the result.</li>
+  </ol>
+
+  <h2>Frequently asked questions</h2>
+  <dl class="faq">
+    <dt>How do I resize an image to exact pixels?</dt>
+    <dd>Open Image Tools, choose an image and type the width and height you want in pixels, then download the processed image.</dd>
+    <dt>How do I compress an image to make the file smaller?</dt>
+    <dd>Choose JPG as the output format and lower the quality slider. A lower quality produces a smaller file; adjust until the size and clarity suit you.</dd>
+    <dt>Which image formats can I convert between?</dt>
+    <dd>You can convert to and from JPG, PNG and WebP, depending on the formats your browser supports. WebP is often the smallest for the web.</dd>
+    <dt>Is my image uploaded to a server?</dt>
+    <dd>No. Resizing, compressing and converting all happen in your browser using canvas, so your image never leaves your device.</dd>
+    <dt>Is there a size limit for images?</dt>
+    <dd>Image dimensions are capped at 12000 pixels per side. Very large images also depend on your device's available memory.</dd>
+  </dl>
+
+  <h2>Related tools</h2>
+  <div class="pages">
+    <a href="./scan-documents.html">Scan documents</a>
+    <a href="./photos-to-pdf.html">Photos to PDF</a>
+    <a href="./pdf-editor.html">PDF editor</a>
+    <a href="./qr-code-generator.html">QR code generator</a>
+  </div>
+  <a class="cta" href="./index.html">Process an image &rarr;</a>
+</main>
+<footer class="foot"><div class="wrap">
+  <div class="pages">
+    <a href="./index.html">Home</a>
+    <a href="./scan-documents.html">Scan documents</a>
+    <a href="./photos-to-pdf.html">Photos to PDF</a>
+    <a href="./pdf-editor.html">PDF editor</a>
+    <a href="./image-tools.html">Image tools</a>
+    <a href="./qr-code-generator.html">QR generator</a>
+  </div>
+  <p>Mindiw Toolbox — free, private, on-device document and PDF tools. Your files are processed in your browser and are never uploaded.</p>
+</div></footer>
+</body>
+</html>
