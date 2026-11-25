@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mindiw-toolbox-v8-seo-pages';
+const CACHE_NAME = 'mindiw-toolbox-v9-scanner-looks';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './qr-engine.js', './opencv.js', './icon.svg', './logo.png', './icon-180.png', './icon-192.png', './icon-512.png', './robots.txt', './sitemap.xml', './scan-documents.html', './photos-to-pdf.html', './pdf-editor.html', './image-tools.html', './qr-code-generator.html'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
