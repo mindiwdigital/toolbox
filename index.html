@@ -509,7 +509,7 @@ function loadCv(){
       // Resolve with no value on purpose: the OpenCV module is itself a thenable
       // (Emscripten Module.then), so resolving *with* it would make the promise adopt
       // the module and recurse through the microtask queue forever, wedging this worker.
-      if(c&&c.Mat&&c.matFromArray&&c.warpPerspective&&c.getPerspectiveTransform&&c.findContours){done=true;resolve();return;}
+      if(c&&c.Mat&&c.matFromArray&&c.warpPerspective&&c.getPerspectiveTransform&&c.findContours&&c.max&&c.divide&&c.resize){done=true;resolve();return;}
       if(Date.now()-started>45000){failed('Scanner engine did not finish loading',false);return;}
       setTimeout(poll,120);
     }
@@ -587,15 +587,26 @@ function processImage(msg){
     cv.warpPerspective(src,warped,matrix,new cv.Size(w,h),cv.INTER_CUBIC,cv.BORDER_REPLICATE);
     srcPts.delete();dstPts.delete();matrix.delete();detected=true;
   }else{warped=src.clone();}
-  var rgb=new cv.Mat(),gray=new cv.Mat(),smooth=new cv.Mat(),bw=new cv.Mat(),colourBlur=new cv.Mat(),colourSharp=new cv.Mat(),colourLevels=new cv.Mat(),colourRgba=new cv.Mat();
+  var rgb=new cv.Mat(),gray=new cv.Mat(),smooth=new cv.Mat(),bw=new cv.Mat(),smallGray=new cv.Mat(),bgGray=new cv.Mat(),bgClamped=new cv.Mat(),bgRgb=new cv.Mat(),norm=new cv.Mat(),lit=new cv.Mat(),colourBlur=new cv.Mat(),colourSharp=new cv.Mat(),colourRgba=new cv.Mat();
   cv.cvtColor(warped,rgb,cv.COLOR_RGBA2RGB);
-  // Unsharp mask plus a levels stretch, so a phone photo comes out looking like a real
-  // scan instead of the untouched photo: crisper text and noticeably brighter paper.
-  cv.GaussianBlur(rgb,colourBlur,new cv.Size(5,5),1.1);
-  cv.addWeighted(rgb,1.3,colourBlur,-0.3,6,colourSharp);
-  cv.convertScaleAbs(colourSharp,colourLevels,1.12,14);
-  cv.cvtColor(colourLevels,colourRgba,cv.COLOR_RGB2RGBA);
   cv.cvtColor(rgb,gray,cv.COLOR_RGB2GRAY);
+  // CamScanner-style cleanup, applied automatically so the confirmed photo already looks
+  // like a scan: estimate the page lighting from a downscaled blur, then divide the photo
+  // by it. Uneven light and shadows flatten to an even white while colours survive. The
+  // blur runs on a small copy so a full-size photo stays quick.
+  cv.resize(gray,smallGray,new cv.Size(Math.max(1,Math.round(gray.cols/8)),Math.max(1,Math.round(gray.rows/8))),0,0,cv.INTER_AREA);
+  cv.GaussianBlur(smallGray,smallGray,new cv.Size(0,0),6,6,cv.BORDER_REPLICATE);
+  cv.resize(smallGray,bgGray,new cv.Size(gray.cols,gray.rows),0,0,cv.INTER_LINEAR);
+  // Keep the divisor away from zero so deep shadows are not blown out to white.
+  var bgFloor=new cv.Mat(bgGray.rows,bgGray.cols,cv.CV_8UC1,new cv.Scalar(70));
+  cv.max(bgGray,bgFloor,bgClamped);
+  cv.cvtColor(bgClamped,bgRgb,cv.COLOR_GRAY2RGB);
+  cv.divide(rgb,bgRgb,norm,255.0);
+  // Lift the black point a little so text reads as crisp dark grey, never solid black.
+  cv.convertScaleAbs(norm,lit,1.06,10);
+  cv.GaussianBlur(lit,colourBlur,new cv.Size(5,5),1.1);
+  cv.addWeighted(lit,1.22,colourBlur,-0.22,0,colourSharp);
+  cv.cvtColor(colourSharp,colourRgba,cv.COLOR_RGB2RGBA);
   cv.GaussianBlur(gray,smooth,new cv.Size(3,3),0);
   // Adaptive threshold cost grows with the square of the window, so 25 stays much
   // faster than 35 while still handling uneven lighting on real documents.
@@ -605,7 +616,7 @@ function processImage(msg){
   var result={ok:true,id:msg.id,detected:detected,
     color:{w:colourRgba.cols,h:colourRgba.rows,buffer:matBytes(colourRgba)},
     bw:{w:bwRgba.cols,h:bwRgba.rows,buffer:matBytes(bwRgba)}};
-  [src,small,warped,rgb,gray,smooth,bw,bwRgba,colourBlur,colourSharp,colourLevels,colourRgba].forEach(function(m){if(m)m.delete();});
+  [src,small,warped,rgb,gray,smooth,bw,bwRgba,smallGray,bgGray,bgFloor,bgClamped,bgRgb,norm,lit,colourBlur,colourSharp,colourRgba].forEach(function(m){if(m)m.delete();});
   return result;
 }
 function warpImage(msg){
@@ -697,7 +708,7 @@ async function processDocumentImage(dataUrl){
     return {data:await basicEnhance(dataUrl),bwData:await basicThreshold(dataUrl),detected:false,engine:false}
   }
 }
-async function basicEnhance(data){const img=await loadImageData(data);const c=document.createElement('canvas');const scale=Math.min(1,3200/Math.max(img.naturalWidth,img.naturalHeight));c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);const ctx=c.getContext('2d');ctx.filter='contrast(1.28) brightness(1.1) saturate(1.06)';ctx.drawImage(img,0,0,c.width,c.height);ctx.filter='none';return c.toDataURL('image/jpeg',.97)}
+async function basicEnhance(data){const img=await loadImageData(data);const c=document.createElement('canvas');const scale=Math.min(1,3200/Math.max(img.naturalWidth,img.naturalHeight));c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);const ctx=c.getContext('2d');ctx.filter='contrast(1.34) brightness(1.2) saturate(1.05)';ctx.drawImage(img,0,0,c.width,c.height);ctx.filter='none';return c.toDataURL('image/jpeg',.97)}
 async function basicThreshold(data){const img=await loadImageData(data);const c=document.createElement('canvas');const scale=Math.min(1,2400/Math.max(img.naturalWidth,img.naturalHeight));c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,c.width,c.height);const im=ctx.getImageData(0,0,c.width,c.height),hist=new Uint32Array(256);for(let i=0;i<im.data.length;i+=4){const y=Math.round(.299*im.data[i]+.587*im.data[i+1]+.114*im.data[i+2]);hist[y]++}let total=im.data.length/4,sum=0;for(let i=0;i<256;i++)sum+=i*hist[i];let sumB=0,wB=0,max=0,t=145;for(let i=0;i<256;i++){wB+=hist[i];if(!wB)continue;const wF=total-wB;if(!wF)break;sumB+=i*hist[i];const between=wB*wF*Math.pow(sumB/wB-(sum-sumB)/wF,2);if(between>max){max=between;t=i}}for(let i=0;i<im.data.length;i+=4){const y=.299*im.data[i]+.587*im.data[i+1]+.114*im.data[i+2],v=y>t?255:0;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}ctx.putImageData(im,0,0);return c.toDataURL('image/jpeg',.94)}
 async function addPhotoFiles(fileList){const files=[...fileList].filter(f=>f.type.startsWith('image/'));if(!files.length)return;setScanProgress(true,'Preparing pages…','Automatically cleaning imported photos and checking document edges.');let detectedCount=0;for(const file of files){try{const originalData=await fileToDataURL(file);const result=await processDocumentImage(originalData);if(result.detected)detectedCount++;state.pages.push({id:newId(),type:'image',data:result.data,bwData:result.bwData,originalData,mode:'colour',rotation:0,filter:'document',name:file.name||'Scanned page',autoDetected:result.detected});}catch(err){toast(err.message)}}setScanProgress(false);state.activePageId=state.pages.length?state.pages[state.pages.length-1].id:null;renderPages();showView('document');toast(files.length+' page(s) added · ready to edit')}
 async function addPdfFiles(fileList){const files=[...fileList].filter(f=>f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'));if(!files.length)return;if(!window.PDFLib){toast('PDF engine could not load. Check your internet connection.');return}showView('pdf');toast('Opening PDF file(s)…');const firstNewPage=state.pages.length;for(const file of files){try{const bytes=new Uint8Array(await file.arrayBuffer());const pdfDoc=await PDFLib.PDFDocument.load(bytes,{ignoreEncryption:false});let thumbs=[];if(window.pdfjsLib){const renderDoc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;for(let i=1;i<=renderDoc.numPages;i++){const pg=await renderDoc.getPage(i);const vp=pg.getViewport({scale:.72});const c=document.createElement('canvas');c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;thumbs.push(c.toDataURL('image/jpeg',.82))}await renderDoc.destroy()}const sourceId=newId();for(let i=0;i<pdfDoc.getPageCount();i++){state.pages.push({id:newId(),type:'pdf',sourceId,pdfDoc,pageIndex:i,bytes:bytes,rotation:0,thumb:thumbs[i]||'',name:file.name+' · Page '+(i+1)})}}catch(err){console.error(err);toast('Could not open '+file.name+'. It may be encrypted or damaged.')}}if(state.pages.length>firstNewPage)state.activePageId=state.pages[firstNewPage].id;renderPages();showView('document');toast('PDF pages added to document')}
@@ -716,7 +727,7 @@ function rotatePage(id){const p=state.pages.find(p=>p.id===id);if(p){p.rotation=
 const SCAN_LOOKS=[
   {id:'magic',label:'Magic',source:'magic',lazy:true,css:'saturate(1.32) contrast(1.1) brightness(1.05)',previewCss:'saturate(1.32) contrast(1.1) brightness(1.05)'},
   {id:'document',label:'Document',source:'data',css:'none',previewCss:'none'},
-  {id:'enhance',label:'Enhance',source:'data',css:'contrast(1.28) brightness(1.1) saturate(1.06)',previewCss:'contrast(1.28) brightness(1.1) saturate(1.06)'},
+  {id:'enhance',label:'Enhance',source:'data',css:'contrast(1.14) brightness(1.04) saturate(1.05)',previewCss:'contrast(1.14) brightness(1.04) saturate(1.05)'},
   {id:'sharp',label:'Sharpen',source:'sharp',lazy:true,css:'contrast(1.14) brightness(1.02)',previewCss:'contrast(1.14) brightness(1.02)'},
   {id:'gray',label:'Grayscale',source:'data',css:'grayscale(1) contrast(1.08)',previewCss:'grayscale(1) contrast(1.08)'},
   {id:'bw',label:'B & W',source:'bw',css:'none',previewCss:'grayscale(1) contrast(2.4)'},
