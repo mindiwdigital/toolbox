@@ -222,6 +222,29 @@
     #qrCanvas canvas{display:block;width:270px;max-width:100%;height:auto;image-rendering:pixelated}
     .qr-error{min-height:0;margin:0 0 8px;color:#b4232d;font-size:11px;line-height:1.45}
     .qr-error:empty{display:none}
+    /* CapCut-style scan look picker shown under the focused page. */
+    .editor-filter-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:14px 2px 0}
+    .editor-filter-head strong{font-size:12px}.editor-filter-head .hint{margin:0}
+    .editor-filter-strip{display:flex;gap:10px;overflow-x:auto;padding:11px 2px 4px;scrollbar-width:thin}
+    .editor-filter{flex:0 0 auto;width:76px;padding:0;background:transparent;border:0;text-align:center}
+    .editor-filter-art{display:block;width:76px;height:76px;border-radius:12px;overflow:hidden;border:2px solid #e2e3e6;background:#fff;box-shadow:0 2px 9px rgba(0,0,0,.07)}
+    .editor-filter.active .editor-filter-art{border-color:#2f88ff;box-shadow:0 0 0 3px rgba(47,136,255,.16)}
+    .editor-filter-art img{width:100%;height:100%;object-fit:cover;display:block;background:#fff}
+    .editor-filter small{display:block;margin-top:6px;font-size:10px;font-weight:700;color:#5b5e64}
+    .editor-filter.active small{color:#1d1d1f}
+    .editor-filter-apply{flex:0 0 auto;width:76px;height:76px;border-radius:12px;border:1px dashed #c9ccd1;background:#fff;color:#4b4e54;font-size:10px;font-weight:700;padding:0 7px;line-height:1.3}
+    /* Drag-to-place layer for signatures and text annotations. */
+    .editor-annotations{position:absolute;inset:0;pointer-events:none}
+    .editor-annotation{position:absolute;box-sizing:border-box;pointer-events:auto;touch-action:none;cursor:move;border:1px dashed transparent;border-radius:3px;min-width:12px;min-height:12px}
+    .editor-annotation.selected{border-color:rgba(47,136,255,.9);box-shadow:0 0 0 1px rgba(47,136,255,.22)}
+    .editor-annotation img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;-webkit-user-select:none;user-select:none}
+    .editor-annotation.text{display:flex;align-items:flex-start;justify-content:flex-start;line-height:1.15;white-space:pre;font-weight:600;color:#101827}
+    .editor-overlay-handle{position:absolute;right:-11px;bottom:-11px;width:22px;height:22px;border-radius:7px;background:#2f88ff;border:2px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.35);touch-action:none;cursor:nwse-resize}
+    .editor-overlay-bar{position:fixed;z-index:36;left:50%;transform:translateX(-50%);bottom:0;width:min(100%,560px);padding:11px 12px calc(13px + env(safe-area-inset-bottom));background:rgba(250,250,252,.98);border-top:1px solid #e4e5e8;box-shadow:0 -8px 24px rgba(0,0,0,.08);backdrop-filter:blur(18px)}
+    .editor-overlay-bar[hidden]{display:none}
+    .editor-overlay-bar p{margin:0 0 9px;font-size:11px;color:#5b5e64;text-align:center}
+    body.overlay-open .editor-bottom-tools{display:none}
+    body.overlay-open{padding-bottom:180px}
     @media(min-width:700px){
       body{padding-top:18px;padding-bottom:94px}
       .app{width:calc(100% - 36px);max-width:1180px;min-height:calc(100dvh - 36px);margin:0 auto;border:1px solid #e2e3e6;border-radius:24px;overflow:visible;box-shadow:0 20px 70px rgba(20,22,26,.10)}
@@ -339,9 +362,11 @@
         <button class="editor-icon" onclick="continueToExport()" aria-label="Continue to PDF settings">✓</button>
       </div>
       <div class="editor-page-stage" id="editorPageStage">
-        <div class="editor-page-paper"><img id="editorPreview" alt="Selected document page preview"><div id="editorPreviewEmpty" class="editor-empty" style="display:none">Add a photo or scan a page to begin.</div></div>
+        <div class="editor-page-paper"><img id="editorPreview" alt="Selected document page preview"><div id="editorPreviewEmpty" class="editor-empty" style="display:none">Add a photo or scan a page to begin.</div><div class="editor-annotations" id="editorAnnotations"></div></div>
       </div>
       <div class="editor-page-strip" id="editorPageStrip" aria-label="Document pages"></div>
+      <div class="editor-filter-head"><strong>Scan look</strong><span class="hint">Tap a style to change how this page looks</span></div>
+      <div class="editor-filter-strip" id="editorFilterStrip" aria-label="Scan look presets"></div>
       <div class="editor-document-settings">
         <label for="documentNameQuick">Document name</label><input id="documentNameQuick" value="My Scanned Document" maxlength="70" autocomplete="off">
         <button class="btn secondary small" onclick="document.getElementById('photoInput').click()">＋ Add photos</button>
@@ -350,9 +375,10 @@
       <div class="editor-bottom-tools" id="editorBottomTools">
         <div class="editor-toolbar" aria-label="Page editing tools">
           <button class="editor-tool" onclick="cycleFilter(state.activePageId)"><span>◐</span><small>Filter</small></button>
-          <button class="editor-tool" onclick="cropPage(state.activePageId)"><span>⌗</span><small>Crop</small></button>
+          <button class="editor-tool" onclick="cropPage(state.activePageId)"><span>⌗</span><small>Perspective</small></button>
           <button class="editor-tool" onclick="rotatePage(state.activePageId)"><span>↻</span><small>Rotate</small></button>
           <button class="editor-tool" onclick="signPage(state.activePageId)"><span>✍</span><small>Sign</small></button>
+          <button class="editor-tool" onclick="addTextAnnotation()"><span>T</span><small>Text</small></button>
           <button class="editor-tool" onclick="movePage(state.activePageId,-1)"><span>↑</span><small>Move up</small></button>
           <button class="editor-tool" onclick="movePage(state.activePageId,1)"><span>↓</span><small>Move down</small></button>
           <button class="editor-tool" onclick="savePageImage(state.activePageId)"><span>⇩</span><small>Save</small></button>
@@ -361,6 +387,10 @@
           <button class="editor-tool editor-tool-del" onclick="deletePage(state.activePageId)"><span>⌫</span><small>Delete</small></button>
         </div>
         <button class="btn primary wide editor-export" onclick="continueToExport()">Continue to PDF settings&nbsp; →</button>
+      </div>
+      <div class="editor-overlay-bar" id="editorOverlayBar" hidden>
+        <p id="editorOverlayHint">Drag to move · use the blue corner to resize</p>
+        <div class="row2"><button class="btn danger" onclick="deleteSelectedAnnotation()">Remove</button><button class="btn primary" onclick="finishAnnotation()">Done</button></div>
       </div>
     </section>
 
@@ -391,7 +421,7 @@
     <section class="view" id="settingsView">
       <div class="page-title"><div><div class="eyebrow">App preferences</div><h1>Settings</h1><p>About your Mindiw Toolbox</p></div></div>
       <div class="panel"><h3>App information</h3><p class="hint">Mindiw Toolbox works on desktop, laptop, tablet and mobile browsers. Camera access requires HTTPS (or localhost) and your permission. For best results, use an up-to-date browser.</p><div class="quick" style="margin-top:12px"><div class="quick-icon">🔐</div><div><strong>Privacy first</strong><small>PDF creation and image processing happen locally in your browser. No account is required.</small></div></div></div>
-      <div class="panel" id="installInstructions"><h3>Install app</h3><p class="hint">No app pop-up will interrupt you. Android: open the browser menu and choose Install app. iPhone: in Safari, tap Share → Add to Home Screen. Your phone may show its own final system confirmation.</p><button class="btn primary wide" onclick="installApp()">＋ Install Mindiw Toolbox</button></div>
+      <div class="panel" id="installInstructions"><h3>Install app</h3><p class="hint" id="installHint">No app pop-up will interrupt you. Android: open the browser menu and choose Install app. iPhone: in Safari, tap Share → Add to Home Screen. Your phone may show its own final system confirmation.</p><button class="btn primary wide" id="installBtn" onclick="installApp()">＋ Install Mindiw Toolbox</button></div>
       <div class="panel"><h3>Storage & permissions</h3><p class="hint">Camera access is requested only when you start scanning. Downloaded images may appear in your phone's Downloads or Photos app depending on device settings. Use the Share button to choose a gallery/photos destination where available.</p></div>
       <p class="hint" style="text-align:center;margin:20px 0">MINDIW DIGITAL · Your vision. Our digital expertise.</p>
     </section>
@@ -421,8 +451,9 @@
 <input class="fileinput" id="captureFallback" type="file" accept="image/*" capture="environment">
 <input class="fileinput" id="imageToolInput" type="file" accept="image/*">
 <div class="modal" id="cameraModal"><div class="sheet"><div class="sheet-head"><h3>Scan document</h3><button class="close" onclick="closeCamera()">×</button></div><div id="cameraBody"><div class="empty"><div class="big">📷</div><strong>Camera scanner</strong><p>Camera preview will open when you start scanning.</p></div></div></div></div>
-<div class="modal" id="cropModal"><div class="sheet"><div class="sheet-head"><h3>Crop page</h3><button class="close" onclick="closeCrop()">×</button></div><div class="crop-stage" id="cropStage"><img id="cropImage" alt="Page crop preview"><svg id="cropOverlay" class="crop-overlay" aria-label="Adjust document corners"><polygon id="cropPoly" points=""></polygon><circle id="cropHandle0" r="13" data-corner="0"></circle><circle id="cropHandle1" r="13" data-corner="1"></circle><circle id="cropHandle2" r="13" data-corner="2"></circle><circle id="cropHandle3" r="13" data-corner="3"></circle></svg></div><p class="hint" style="margin:10px 0">Drag each corner handle to match the document edges. The page will be perspective-corrected.</p><div class="row2"><button class="btn secondary" onclick="resetCrop()">Reset selection</button><button class="btn primary" onclick="applyCrop()">Apply crop</button></div></div></div>
-<div class="modal" id="signatureModal"><div class="sheet"><div class="sheet-head"><h3>Add signature</h3><button class="close" onclick="closeSignature()">×</button></div><p class="hint">Draw your signature below using your finger. It will be placed near the bottom-right of the selected page.</p><canvas id="signatureCanvas" width="900" height="300" style="width:100%;height:150px;background:#fff;border-radius:13px;touch-action:none;border:1px solid #c6d4e8"></canvas><div class="row2" style="margin-top:12px"><button class="btn secondary" onclick="clearSignature()">Clear</button><button class="btn primary" onclick="applySignature()">Apply signature</button></div></div></div>
+<div class="modal" id="cropModal"><div class="sheet"><div class="sheet-head"><h3>Crop &amp; perspective</h3><button class="close" onclick="closeCrop()">×</button></div><div class="crop-stage" id="cropStage"><img id="cropImage" alt="Page crop preview"><svg id="cropOverlay" class="crop-overlay" aria-label="Adjust document corners"><polygon id="cropPoly" points=""></polygon><circle id="cropHandle0" r="13" data-corner="0"></circle><circle id="cropHandle1" r="13" data-corner="1"></circle><circle id="cropHandle2" r="13" data-corner="2"></circle><circle id="cropHandle3" r="13" data-corner="3"></circle></svg></div><p class="hint" style="margin:10px 0">Drag each corner handle to match the document edges, or tap Auto-detect. The page is then perspective-corrected and straightened.</p><div class="row2" style="margin-bottom:10px"><button class="btn subtle" onclick="autoDetectCrop()">Auto-detect page</button><button class="btn secondary" onclick="resetCrop()">Reset selection</button></div><div class="row2"><button class="btn secondary" onclick="closeCrop()">Cancel</button><button class="btn primary" onclick="applyCrop()">Apply correction</button></div></div></div>
+<div class="modal" id="signatureModal"><div class="sheet"><div class="sheet-head"><h3>Add signature</h3><button class="close" onclick="closeSignature()">×</button></div><p class="hint">Draw your signature below using your finger. After placing it you can drag it anywhere on the page and resize it with the blue corner.</p><canvas id="signatureCanvas" width="900" height="300" style="width:100%;height:150px;background:#fff;border-radius:13px;touch-action:none;border:1px solid #c6d4e8"></canvas><div class="row2" style="margin-top:12px"><button class="btn secondary" onclick="clearSignature()">Clear</button><button class="btn primary" onclick="applySignature()">Place on page</button></div></div></div>
+<div class="modal" id="textModal"><div class="sheet"><div class="sheet-head"><h3>Add text</h3><button class="close" onclick="closeTextModal()">×</button></div><p class="hint">Type the text to place on the page. You can drag it anywhere and resize it after adding.</p><div class="field"><label for="textAnnotationInput">Text</label><textarea id="textAnnotationInput" rows="2" placeholder="Type text here"></textarea></div><div class="row2"><div class="field"><label>Text size</label><input id="textAnnotationSize" type="range" min="2" max="20" value="6" style="padding:0"></div><div class="field"><label>Colour</label><input id="textAnnotationColor" type="color" value="#101827" style="padding:3px;height:38px"></div></div><div class="row2" style="margin-top:10px"><button class="btn secondary" onclick="closeTextModal()">Cancel</button><button class="btn primary" onclick="applyTextAnnotation()">Place on page</button></div></div></div>
 <div class="modal" id="ocrModal"><div class="sheet"><div class="sheet-head"><h3>Extracted text (English OCR)</h3><button class="close" onclick="closeOcr()">×</button></div><div id="ocrStatus" class="hint">Preparing text recognition…</div><div class="progress"><span id="ocrProgress"></span></div><textarea id="ocrOutput" placeholder="Recognized text will appear here…"></textarea><div class="row2" style="margin-top:10px"><button class="btn secondary" onclick="copyOcr()">Copy text</button><button class="btn primary" onclick="downloadOcr()">Download TXT</button></div><p class="hint">OCR results can contain mistakes, especially with handwriting, low light or complex layouts. This first version recognizes English text.</p></div></div>
 <div class="toast" id="toast"></div>
 <div class="scan-processing" id="scanProcessing" aria-live="polite"><div class="scan-processing-card"><div class="scan-spinner"></div><strong id="scanProcessingTitle">Scanning document…</strong><p class="hint" id="scanProcessingText" style="margin:8px 0 0">Detecting page edges and cleaning the image.</p></div></div>
@@ -433,10 +464,10 @@
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
-const state={pages:[],activePageId:null,previewRenderToken:0,cvUnavailable:false,cameraStream:null,cameraFacing:'environment',liveDetectActive:false,liveDetectTimer:null,cropPageId:null,cropRect:null,cropStart:null,signaturePageId:null,signatureDrawing:false,lastPdf:null,imageTool:null,qr:null,qrCanvas:null,qrLoadPromise:null};
+const state={pages:[],activePageId:null,previewRenderToken:0,cvUnavailable:false,cameraStream:null,cameraFacing:'environment',liveDetectActive:false,liveDetectTimer:null,cropPageId:null,cropRect:null,cropStart:null,signaturePageId:null,signatureDrawing:false,lastPdf:null,imageTool:null,qr:null,qrCanvas:null,qrLoadPromise:null,selectedAnnotationId:null,annDrag:null};
 if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),2600)}
-function showView(name){const target=$(name+'View');if(!target){console.error('Unknown app view:',name);toast('This section is unavailable. Please reload the app.');return}document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));target.classList.add('active');document.body.classList.toggle('editor-open',name==='document');const navName=name==='document'?'pdf':name;document.querySelectorAll('.navitem').forEach(b=>b.classList.toggle('active',b.dataset.view===navName));if(name==='library')loadLibrary();if(name==='document')renderDocumentView().catch(e=>{console.error(e);toast('Could not render page editor')});window.scrollTo({top:0,behavior:'auto'})}
+function showView(name){const target=$(name+'View');if(!target){console.error('Unknown app view:',name);toast('This section is unavailable. Please reload the app.');return}document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));target.classList.add('active');document.body.classList.toggle('editor-open',name==='document');if(name!=='document'){state.selectedAnnotationId=null;state.annDrag=null;closeOverlayBar()}const navName=name==='document'?'pdf':name;document.querySelectorAll('.navitem').forEach(b=>b.classList.toggle('active',b.dataset.view===navName));if(name==='library')loadLibrary();if(name==='document')renderDocumentView().catch(e=>{console.error(e);toast('Could not render page editor')});window.scrollTo({top:0,behavior:'auto'})}
 function focusEditorPages(){window.setTimeout(()=>{const target=$('pagesArea');if(target)target.scrollIntoView({behavior:'smooth',block:'start'})},180)}
 function continueToExport(){if(!state.pages.length){toast('Add at least one page first');return}showView('pdf');window.setTimeout(()=>{const target=$('createBar');target.scrollIntoView({behavior:'smooth',block:'center'})},180)}
 document.querySelectorAll('.navitem').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
@@ -556,13 +587,14 @@ function processImage(msg){
     cv.warpPerspective(src,warped,matrix,new cv.Size(w,h),cv.INTER_CUBIC,cv.BORDER_REPLICATE);
     srcPts.delete();dstPts.delete();matrix.delete();detected=true;
   }else{warped=src.clone();}
-  var rgb=new cv.Mat(),gray=new cv.Mat(),smooth=new cv.Mat(),bw=new cv.Mat(),colourBlur=new cv.Mat(),colourSharp=new cv.Mat(),colourRgba=new cv.Mat();
+  var rgb=new cv.Mat(),gray=new cv.Mat(),smooth=new cv.Mat(),bw=new cv.Mat(),colourBlur=new cv.Mat(),colourSharp=new cv.Mat(),colourLevels=new cv.Mat(),colourRgba=new cv.Mat();
   cv.cvtColor(warped,rgb,cv.COLOR_RGBA2RGB);
-  // Unsharp mask for the colour page. A 5x5 kernel still gives sigma ~1.1, but the
-  // separable blur is several times faster than the sigma-derived ~11x11 kernel.
+  // Unsharp mask plus a levels stretch, so a phone photo comes out looking like a real
+  // scan instead of the untouched photo: crisper text and noticeably brighter paper.
   cv.GaussianBlur(rgb,colourBlur,new cv.Size(5,5),1.1);
-  cv.addWeighted(rgb,1.16,colourBlur,-0.16,5,colourSharp);
-  cv.cvtColor(colourSharp,colourRgba,cv.COLOR_RGB2RGBA);
+  cv.addWeighted(rgb,1.3,colourBlur,-0.3,6,colourSharp);
+  cv.convertScaleAbs(colourSharp,colourLevels,1.12,14);
+  cv.cvtColor(colourLevels,colourRgba,cv.COLOR_RGB2RGBA);
   cv.cvtColor(rgb,gray,cv.COLOR_RGB2GRAY);
   cv.GaussianBlur(gray,smooth,new cv.Size(3,3),0);
   // Adaptive threshold cost grows with the square of the window, so 25 stays much
@@ -573,7 +605,7 @@ function processImage(msg){
   var result={ok:true,id:msg.id,detected:detected,
     color:{w:colourRgba.cols,h:colourRgba.rows,buffer:matBytes(colourRgba)},
     bw:{w:bwRgba.cols,h:bwRgba.rows,buffer:matBytes(bwRgba)}};
-  [src,small,warped,rgb,gray,smooth,bw,bwRgba,colourBlur,colourSharp,colourRgba].forEach(function(m){if(m)m.delete();});
+  [src,small,warped,rgb,gray,smooth,bw,bwRgba,colourBlur,colourSharp,colourLevels,colourRgba].forEach(function(m){if(m)m.delete();});
   return result;
 }
 function warpImage(msg){
@@ -665,9 +697,9 @@ async function processDocumentImage(dataUrl){
     return {data:await basicEnhance(dataUrl),bwData:await basicThreshold(dataUrl),detected:false,engine:false}
   }
 }
-async function basicEnhance(data){const img=await loadImageData(data);const c=document.createElement('canvas');const scale=Math.min(1,3200/Math.max(img.naturalWidth,img.naturalHeight));c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);const ctx=c.getContext('2d');ctx.filter='contrast(1.12) brightness(1.035) saturate(1.08)';ctx.drawImage(img,0,0,c.width,c.height);ctx.filter='none';return c.toDataURL('image/jpeg',.97)}
+async function basicEnhance(data){const img=await loadImageData(data);const c=document.createElement('canvas');const scale=Math.min(1,3200/Math.max(img.naturalWidth,img.naturalHeight));c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);const ctx=c.getContext('2d');ctx.filter='contrast(1.28) brightness(1.1) saturate(1.06)';ctx.drawImage(img,0,0,c.width,c.height);ctx.filter='none';return c.toDataURL('image/jpeg',.97)}
 async function basicThreshold(data){const img=await loadImageData(data);const c=document.createElement('canvas');const scale=Math.min(1,2400/Math.max(img.naturalWidth,img.naturalHeight));c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,c.width,c.height);const im=ctx.getImageData(0,0,c.width,c.height),hist=new Uint32Array(256);for(let i=0;i<im.data.length;i+=4){const y=Math.round(.299*im.data[i]+.587*im.data[i+1]+.114*im.data[i+2]);hist[y]++}let total=im.data.length/4,sum=0;for(let i=0;i<256;i++)sum+=i*hist[i];let sumB=0,wB=0,max=0,t=145;for(let i=0;i<256;i++){wB+=hist[i];if(!wB)continue;const wF=total-wB;if(!wF)break;sumB+=i*hist[i];const between=wB*wF*Math.pow(sumB/wB-(sum-sumB)/wF,2);if(between>max){max=between;t=i}}for(let i=0;i<im.data.length;i+=4){const y=.299*im.data[i]+.587*im.data[i+1]+.114*im.data[i+2],v=y>t?255:0;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}ctx.putImageData(im,0,0);return c.toDataURL('image/jpeg',.94)}
-async function addPhotoFiles(fileList){const files=[...fileList].filter(f=>f.type.startsWith('image/'));if(!files.length)return;setScanProgress(true,'Preparing pages…','Automatically cleaning imported photos and checking document edges.');let detectedCount=0;for(const file of files){try{const originalData=await fileToDataURL(file);const result=await processDocumentImage(originalData);if(result.detected)detectedCount++;state.pages.push({id:newId(),type:'image',data:result.data,bwData:result.bwData,originalData,mode:'colour',rotation:0,filter:'original',name:file.name||'Scanned page',autoDetected:result.detected});}catch(err){toast(err.message)}}setScanProgress(false);state.activePageId=state.pages.length?state.pages[state.pages.length-1].id:null;renderPages();showView('document');toast(files.length+' page(s) added · ready to edit')}
+async function addPhotoFiles(fileList){const files=[...fileList].filter(f=>f.type.startsWith('image/'));if(!files.length)return;setScanProgress(true,'Preparing pages…','Automatically cleaning imported photos and checking document edges.');let detectedCount=0;for(const file of files){try{const originalData=await fileToDataURL(file);const result=await processDocumentImage(originalData);if(result.detected)detectedCount++;state.pages.push({id:newId(),type:'image',data:result.data,bwData:result.bwData,originalData,mode:'colour',rotation:0,filter:'document',name:file.name||'Scanned page',autoDetected:result.detected});}catch(err){toast(err.message)}}setScanProgress(false);state.activePageId=state.pages.length?state.pages[state.pages.length-1].id:null;renderPages();showView('document');toast(files.length+' page(s) added · ready to edit')}
 async function addPdfFiles(fileList){const files=[...fileList].filter(f=>f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'));if(!files.length)return;if(!window.PDFLib){toast('PDF engine could not load. Check your internet connection.');return}showView('pdf');toast('Opening PDF file(s)…');const firstNewPage=state.pages.length;for(const file of files){try{const bytes=new Uint8Array(await file.arrayBuffer());const pdfDoc=await PDFLib.PDFDocument.load(bytes,{ignoreEncryption:false});let thumbs=[];if(window.pdfjsLib){const renderDoc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;for(let i=1;i<=renderDoc.numPages;i++){const pg=await renderDoc.getPage(i);const vp=pg.getViewport({scale:.72});const c=document.createElement('canvas');c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;thumbs.push(c.toDataURL('image/jpeg',.82))}await renderDoc.destroy()}const sourceId=newId();for(let i=0;i<pdfDoc.getPageCount();i++){state.pages.push({id:newId(),type:'pdf',sourceId,pdfDoc,pageIndex:i,bytes:bytes,rotation:0,thumb:thumbs[i]||'',name:file.name+' · Page '+(i+1)})}}catch(err){console.error(err);toast('Could not open '+file.name+'. It may be encrypted or damaged.')}}if(state.pages.length>firstNewPage)state.activePageId=state.pages[firstNewPage].id;renderPages();showView('document');toast('PDF pages added to document')}
 function updateWorkspaceSpace(){let bytes=0;for(const p of state.pages){if(p.type==='image'){for(const v of [p.data,p.bwData,p.originalData])if(typeof v==='string')bytes+=Math.max(0,v.length- Math.min(v.length,80))*0.75}else if(p.bytes)bytes+=p.bytes.byteLength||p.bytes.length||0}const mb=bytes/1024/1024;$('workspaceSize').textContent=mb.toFixed(1)+' MB used';$('workspaceMeter').style.width=Math.min(100,mb/250*100)+'%'}
 function clearWorkspace(){if(!state.pages.length){toast('Workspace is already empty');return}if(!confirm('Remove all pages from the current workspace? Exported files in My Files will stay saved.'))return;state.pages=[];state.activePageId=null;renderPages();showView('pdf');toast('Workspace cleared')}
@@ -677,25 +709,211 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
 function movePage(id,dir){const i=state.pages.findIndex(p=>p.id===id),j=i+dir;if(i<0||j<0||j>=state.pages.length)return;[state.pages[i],state.pages[j]]=[state.pages[j],state.pages[i]];renderPages();if($('documentView').classList.contains('active'))renderDocumentView()}
 function deletePage(id){state.pages=state.pages.filter(p=>p.id!==id);if(state.activePageId===id)state.activePageId=state.pages[0]?.id||null;renderPages();if($('documentView').classList.contains('active'))renderDocumentView();toast('Page deleted')}
 function rotatePage(id){const p=state.pages.find(p=>p.id===id);if(p){p.rotation=((p.rotation||0)+90)%360;renderPages();if($('documentView').classList.contains('active'))renderDocumentView()}}
-async function cycleFilter(id){const p=state.pages.find(x=>x.id===id);if(!p)return;if(p.type!=='image')await ensureImagePage(p);const filters=['original','document','gray','bw'];p.filter=filters[(filters.indexOf(p.filter||'original')+1)%filters.length];p.mode=p.filter==='original'?'original':p.filter==='bw'?'document':'colour';renderPages();if($('documentView').classList.contains('active'))renderDocumentView();toast('Page filter: '+p.filter)}
-function togglePageMode(id){const p=state.pages.find(x=>x.id===id);if(!p)return;return cycleFilter(id)}
+// Scanner looks (Magic colour, Document, Enhance, Sharpen, Grayscale, B & W, Original).
+// A look decides which processed image of the page is shown plus an optional canvas
+// filter, so the tile the user taps is exactly what gets exported. "Magic" and "Sharpen"
+// are pixel-enabled looks: they are computed on demand and cached per page.
+const SCAN_LOOKS=[
+  {id:'magic',label:'Magic',source:'magic',lazy:true,css:'saturate(1.32) contrast(1.1) brightness(1.05)',previewCss:'saturate(1.32) contrast(1.1) brightness(1.05)'},
+  {id:'document',label:'Document',source:'data',css:'none',previewCss:'none'},
+  {id:'enhance',label:'Enhance',source:'data',css:'contrast(1.28) brightness(1.1) saturate(1.06)',previewCss:'contrast(1.28) brightness(1.1) saturate(1.06)'},
+  {id:'sharp',label:'Sharpen',source:'sharp',lazy:true,css:'contrast(1.14) brightness(1.02)',previewCss:'contrast(1.14) brightness(1.02)'},
+  {id:'gray',label:'Grayscale',source:'data',css:'grayscale(1) contrast(1.08)',previewCss:'grayscale(1) contrast(1.08)'},
+  {id:'bw',label:'B & W',source:'bw',css:'none',previewCss:'grayscale(1) contrast(2.4)'},
+  {id:'original',label:'Original',source:'original',css:'none',previewCss:'none'}
+];
+function scanLook(id){return SCAN_LOOKS.find(l=>l.id===id)||SCAN_LOOKS.find(l=>l.id==='document')||SCAN_LOOKS[0]}
+function currentPage(){return state.pages.find(p=>p.id===state.activePageId)||null}
+async function applyScanLook(id,lookId){
+  const p=state.pages.find(x=>x.id===id);if(!p)return;
+  if(p.type!=='image'){try{await ensureImagePage(p)}catch(e){toast(e.message);return}}
+  const look=scanLook(lookId);
+  p.filter=lookId;
+  p.mode=lookId==='original'?'original':(lookId==='gray'||lookId==='bw')?'document':'colour';
+  if(look.lazy){
+    setScanProgress(true,'Applying '+look.label+' look…','Enhancing this page on your device.');
+    try{await ensureLookData(p,lookId)}finally{setScanProgress(false)}
+  }
+  renderPages();
+  if($('documentView').classList.contains('active'))await renderDocumentView();
+  toast('Scan look: '+look.label);
+}
+async function cycleFilter(id){const p=state.pages.find(x=>x.id===id);if(!p)return;const ids=SCAN_LOOKS.map(l=>l.id);const next=ids[(ids.indexOf(p.filter||'document')+1)%ids.length];await applyScanLook(id,next)}
+function togglePageMode(id){return cycleFilter(id)}
+function renderFilterStrip(page){
+  const strip=$('editorFilterStrip');if(!strip)return;
+  if(!page||page.type!=='image'){strip.innerHTML='<p class="hint" style="margin:0">Scan looks appear here once this page is a scan.</p>';return}
+  const active=page.filter||'document';
+  const cache=page.lookData||{};
+  strip.innerHTML=SCAN_LOOKS.map(l=>{
+    const done=cache[l.id];
+    const src=l.source==='original'?(page.originalData||page.data):l.source==='bw'?(page.bwData||page.data):done||page.data;
+    const pcss=(l.lazy&&done)?'none':(l.previewCss||'none');
+    return `<button type="button" class="editor-filter${l.id===active?' active':''}" onclick="applyScanLook('${page.id}','${l.id}')"><span class="editor-filter-art"><img src="${src||''}" alt="" style="filter:${pcss}"></span><small>${l.label}</small></button>`;
+  }).join('');
+}
+// Magic colour and Sharpen are device-only pixel passes. Only the look the user picks is
+// computed, then cached on the page, so untouched pages cost nothing extra.
+function clamp255(v){return v<0?0:v>255?255:v}
+async function buildLookData(p,lookId){
+  const base=p.data||p.originalData;if(!base)return null;
+  const src=await loadImageData(base);
+  const w=src.naturalWidth,h=src.naturalHeight;if(!w||!h)return null;
+  const c=document.createElement('canvas');c.width=w;c.height=h;
+  const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(src,0,0);
+  const im=ctx.getImageData(0,0,w,h),d=im.data,n=w*h;
+  if(lookId==='magic'){
+    // Grey-world white balance, blended only part of the way so a warmly lit photo loses
+    // its yellow cast but keeps its colour, then a saturation and contrast lift for the
+    // bright, even "magic colour" look document scanners produce.
+    let sr=0,sg=0,sb=0;
+    for(let i=0;i<d.length;i+=4){sr+=d[i];sg+=d[i+1];sb+=d[i+2]}
+    const mr=(sr/n)||1,mg=(sg/n)||1,mb=(sb/n)||1,avg=(mr+mg+mb)/3||1;
+    const cl=v=>Math.max(.85,Math.min(1.35,v));
+    const mix=v=>1+0.55*(cl(v)-1);
+    const kr=mix(avg/mr),kg=mix(avg/mg),kb=mix(avg/mb);
+    const sat=1.45,con=1.09,bri=6;
+    for(let i=0;i<d.length;i+=4){
+      let r=d[i]*kr,g=d[i+1]*kg,b=d[i+2]*kb;
+      const gray=.299*r+.587*g+.114*b;
+      r=(gray+sat*(r-gray)-128)*con+128+bri;
+      g=(gray+sat*(g-gray)-128)*con+128+bri;
+      b=(gray+sat*(b-gray)-128)*con+128+bri;
+      d[i]=clamp255(r);d[i+1]=clamp255(g);d[i+2]=clamp255(b);
+    }
+  }else if(lookId==='sharp'){
+    // Unsharp mask on luminance using a fast separable 3-tap box blur.
+    const lum=new Float32Array(n);
+    for(let i=0,j=0;i<d.length;i+=4,j++)lum[j]=.299*d[i]+.587*d[i+1]+.114*d[i+2];
+    const tmp=new Float32Array(n),blur=new Float32Array(n);
+    for(let y=0;y<h;y++){const row=y*w;for(let x=0;x<w;x++){const a=lum[row+(x>0?x-1:0)],b2=lum[row+x],cc=lum[row+(x<w-1?x+1:x)];tmp[row+x]=(a+b2+cc)/3}}
+    for(let y=0;y<h;y++){const up=(y>0?y-1:0)*w,row=y*w,dn=(y<h-1?y+1:y)*w;for(let x=0;x<w;x++)blur[row+x]=(tmp[up+x]+tmp[row+x]+tmp[dn+x])/3}
+    const amt=1.5;
+    for(let i=0,j=0;i<d.length;i+=4,j++){
+      const delta=amt*(lum[j]-blur[j]);
+      d[i]=clamp255(d[i]+delta);d[i+1]=clamp255(d[i+1]+delta);d[i+2]=clamp255(d[i+2]+delta);
+    }
+  }else return null;
+  ctx.putImageData(im,0,0);
+  return c.toDataURL('image/jpeg',.96);
+}
+async function ensureLookData(p,lookId){
+  if(!p||p.type!=='image')return null;
+  p.lookData=p.lookData||{};
+  if(p.lookData[lookId])return p.lookData[lookId];
+  try{const made=await buildLookData(p,lookId);if(made)p.lookData[lookId]=made;return made||null}
+  catch(e){console.warn('Look could not be applied',e);return null}
+}
+// Signatures and text are stored as page annotations (not baked in), so they survive
+// filter changes and are drawn on top of the page whenever it is exported.
+function renderAnnotations(page){
+  const box=$('editorAnnotations');if(!box)return;
+  const list=(page&&page.type==='image'&&page.annotations)?page.annotations:[];
+  if(!list.length){box.innerHTML='';closeOverlayBar();return}
+  const boxH=box.clientHeight||1;
+  box.innerHTML=list.map(a=>{
+    const selected=a.id===state.selectedAnnotationId;
+    if(a.kind==='text'){
+      return `<div class="editor-annotation text${selected?' selected':''}" data-ann="${a.id}" style="left:${(a.x*100).toFixed(2)}%;top:${(a.y*100).toFixed(2)}%;font-size:${((a.size||.05)*boxH).toFixed(1)}px;color:${a.color||'#101827'}"><span>${escapeHtml(a.text)}</span>${selected?'<span class="editor-overlay-handle" data-handle="1"></span>':''}</div>`;
+    }
+    return `<div class="editor-annotation${selected?' selected':''}" data-ann="${a.id}" style="left:${(a.x*100).toFixed(2)}%;top:${(a.y*100).toFixed(2)}%;width:${(a.w*100).toFixed(2)}%;height:${(a.h*100).toFixed(2)}%"><img src="${a.src}" alt="">${selected?'<span class="editor-overlay-handle" data-handle="1"></span>':''}</div>`;
+  }).join('');
+  if(state.selectedAnnotationId)openOverlayBar();else closeOverlayBar();
+}
+function openOverlayBar(){const bar=$('editorOverlayBar');if(!bar)return;bar.hidden=false;document.body.classList.add('overlay-open')}
+function closeOverlayBar(){const bar=$('editorOverlayBar');if(bar)bar.hidden=true;document.body.classList.remove('overlay-open')}
+function finishAnnotation(){const p=currentPage();state.selectedAnnotationId=null;if(p)renderAnnotations(p)}
+function deleteSelectedAnnotation(){const p=currentPage();if(!p||!p.annotations)return;const before=p.annotations.length;p.annotations=p.annotations.filter(a=>a.id!==state.selectedAnnotationId);if(p.annotations.length===before)return;state.selectedAnnotationId=null;renderAnnotations(p);toast('Removed from page')}
+async function addTextAnnotation(){
+  const p=currentPage();if(!p)return;
+  if(p.type!=='image'){try{await ensureImagePage(p);renderPages()}catch(e){toast(e.message);return}}
+  $('textAnnotationInput').value='';$('textAnnotationSize').value=6;$('textAnnotationColor').value='#101827';
+  showModal('textModal');setTimeout(()=>{const el=$('textAnnotationInput');if(el)el.focus()},120);
+}
+function closeTextModal(){hideModal('textModal')}
+async function applyTextAnnotation(){
+  const p=currentPage();if(!p)return;
+  const text=$('textAnnotationInput').value.trim();
+  if(!text){toast('Type some text first');return}
+  try{await ensureImagePage(p)}catch(e){toast(e.message);return}
+  const size=Math.max(2,Math.min(20,Number($('textAnnotationSize').value)||6))/100;
+  const a={id:newId(),kind:'text',text,x:.08,y:.08,size,color:$('textAnnotationColor').value||'#101827'};
+  (p.annotations=p.annotations||[]).push(a);
+  state.selectedAnnotationId=a.id;closeTextModal();renderPages();await renderDocumentView();
+  toast('Text added — drag it anywhere, then tap Done');
+}
+// Draw every annotation of a page into an export canvas, using fractions of the canvas
+// size so placement matches what the user positioned in the editor.
+async function drawAnnotations(ctx,w,h,p){
+  const list=(p&&p.annotations)||[];
+  for(const a of list){
+    if(a.kind==='image'&&a.src){
+      try{const img=await loadImageData(a.src);ctx.drawImage(img,a.x*w,a.y*h,a.w*w,a.h*h)}catch(e){console.warn('Annotation image skipped',e)}
+    }else if(a.kind==='text'&&a.text){
+      const size=Math.max(6,(a.size||.05)*h);
+      ctx.font='600 '+size+'px Inter, system-ui, -apple-system, Segoe UI, sans-serif';
+      ctx.fillStyle=a.color||'#101827';
+      ctx.textBaseline='top';
+      String(a.text).split('\n').forEach((line,i)=>ctx.fillText(line,a.x*w,a.y*h+i*size*1.15));
+    }
+  }
+}
+const annBox=$('editorAnnotations');
+annBox.addEventListener('pointerdown',e=>{
+  const p=currentPage();if(!p)return;
+  const node=e.target.closest('[data-ann]');if(!node)return;
+  const a=(p.annotations||[]).find(x=>x.id===node.dataset.ann);if(!a)return;
+  if(state.selectedAnnotationId!==a.id){state.selectedAnnotationId=a.id;renderAnnotations(p);}
+  const rect=annBox.getBoundingClientRect();
+  state.annDrag={id:a.id,mode:e.target.closest('[data-handle]')?'resize':'move',startX:e.clientX,startY:e.clientY,boxW:rect.width||1,boxH:rect.height||1,start:Object.assign({},a)};
+  annBox.setPointerCapture(e.pointerId);e.preventDefault();
+});
+annBox.addEventListener('pointermove',e=>{
+  const d=state.annDrag;if(!d)return;
+  const p=currentPage();if(!p)return;
+  const a=(p.annotations||[]).find(x=>x.id===d.id);if(!a)return;
+  const dx=(e.clientX-d.startX)/d.boxW,dy=(e.clientY-d.startY)/d.boxH;
+  if(d.mode==='move'){
+    if(a.kind==='text'){a.x=Math.max(0,Math.min(.9,d.start.x+dx));a.y=Math.max(0,Math.min(.95,d.start.y+dy));}
+    else{a.x=Math.max(0,Math.min(1-d.start.w,d.start.x+dx));a.y=Math.max(0,Math.min(1-d.start.h,d.start.y+dy));}
+  }else if(a.kind==='image'){
+    const ratio=(d.start.h/d.start.w)||1;
+    a.w=Math.max(.05,Math.min(1.6,d.start.w+dx));a.h=a.w*ratio;
+    a.x=Math.max(0,Math.min(1-a.w,a.x));a.y=Math.max(0,Math.min(1-a.h,a.y));
+  }else{
+    a.size=Math.max(.015,Math.min(.32,(d.start.size||.05)+dy));
+  }
+  const node=annBox.querySelector('[data-ann="'+a.id+'"]');
+  if(node){
+    node.style.left=(a.x*100).toFixed(2)+'%';node.style.top=(a.y*100).toFixed(2)+'%';
+    if(a.kind==='text')node.style.fontSize=((a.size||.05)*d.boxH).toFixed(1)+'px';
+    else{node.style.width=(a.w*100).toFixed(2)+'%';node.style.height=(a.h*100).toFixed(2)+'%'}
+  }
+});
+annBox.addEventListener('pointerup',()=>{state.annDrag=null});
+annBox.addEventListener('pointercancel',()=>{state.annDrag=null});
+$('editorPageStage').addEventListener('pointerdown',e=>{if(e.target.closest('.editor-annotation'))return;if(state.selectedAnnotationId){state.selectedAnnotationId=null;const p=currentPage();if(p)renderAnnotations(p)}});
 async function renderDocumentView(){
   const preview=$('editorPreview'),empty=$('editorPreviewEmpty'),strip=$('editorPageStrip');
   if(!preview||!strip)return;
   $('documentTitle').textContent=$('docName').value||'My Scanned Document';
   $('documentNameQuick').value=$('docName').value||'My Scanned Document';
   if(!state.pages.length){
-    state.activePageId=null;$('documentPageCount').textContent='0 pages';preview.removeAttribute('src');preview.style.display='none';empty.style.display='block';strip.innerHTML='';
+    state.activePageId=null;state.selectedAnnotationId=null;$('documentPageCount').textContent='0 pages';preview.removeAttribute('src');preview.style.display='none';empty.style.display='block';strip.innerHTML='';renderFilterStrip(null);renderAnnotations(null);
     document.querySelectorAll('.editor-tool').forEach(b=>b.disabled=true);return;
   }
   let index=state.pages.findIndex(p=>p.id===state.activePageId);if(index<0){index=0;state.activePageId=state.pages[0].id;}
   const page=state.pages[index],token=++state.previewRenderToken;
   $('documentPageCount').textContent=`Page ${index+1} of ${state.pages.length}`;
   document.querySelectorAll('.editor-tool').forEach(b=>b.disabled=false);
-  const modeLabel=page.type==='pdf'?'PDF page':page.filter==='bw'?'Black & white':page.filter==='gray'?'Grayscale':page.filter==='document'?'Document clean':'Colour scan';
+  const modeLabel=page.type==='pdf'?'PDF page':scanLook(page.filter||'document').label;
   try{let src=await pageAsImage(page);if(page.rotation)src=await rotatePreview(src,page.rotation);if(token!==state.previewRenderToken)return;preview.src=src;preview.style.display='block';empty.style.display='none';preview.alt=`${modeLabel}, page ${index+1}`;}
   catch(e){console.error('Page preview error:',e);preview.removeAttribute('src');preview.style.display='none';empty.style.display='block';empty.textContent='This page preview could not be loaded. Try rotating or re-importing the page.';}
   strip.innerHTML=state.pages.map((p,i)=>{const thumb=p.type==='image'?p.data:p.thumb||'';return `<button type="button" class="editor-thumb ${p.id===page.id?'active':''}" onclick="selectActivePage('${p.id}')" aria-label="Open page ${i+1}">${thumb?`<img src="${thumb}" alt="">`:'<span>PDF</span>'}<span>${i+1}</span></button>`}).join('');
+  renderFilterStrip(page);
+  if(state.selectedAnnotationId&&!(page.annotations||[]).some(a=>a.id===state.selectedAnnotationId))state.selectedAnnotationId=null;
+  if(preview.complete)renderAnnotations(page);else preview.onload=()=>renderAnnotations(page);
+  requestAnimationFrame(()=>renderAnnotations(page));
 }
 function selectActivePage(id){if(!state.pages.some(p=>p.id===id))return;state.activePageId=id;renderDocumentView().catch(e=>console.error(e));}
 async function rotatePreview(data,angle){const img=await loadImageData(data),rad=angle*Math.PI/180,swap=Math.abs(angle%180)===90,c=document.createElement('canvas');c.width=swap?img.naturalHeight:img.naturalWidth;c.height=swap?img.naturalWidth:img.naturalHeight;const ctx=c.getContext('2d');ctx.translate(c.width/2,c.height/2);ctx.rotate(rad);ctx.drawImage(img,-img.naturalWidth/2,-img.naturalHeight/2);return c.toDataURL('image/jpeg',.9)}
@@ -706,9 +924,23 @@ const sigCanvas=$('signatureCanvas');
 sigCanvas.addEventListener('pointerdown',e=>{state.signatureDrawing=true;sigCanvas.setPointerCapture(e.pointerId);const r=sigCanvas.getBoundingClientRect();const ctx=sigCanvas.getContext('2d');ctx.beginPath();ctx.moveTo((e.clientX-r.left)*sigCanvas.width/r.width,(e.clientY-r.top)*sigCanvas.height/r.height);ctx.lineWidth=7;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#101827'});
 sigCanvas.addEventListener('pointermove',e=>{if(!state.signatureDrawing)return;const r=sigCanvas.getBoundingClientRect();const ctx=sigCanvas.getContext('2d');ctx.lineTo((e.clientX-r.left)*sigCanvas.width/r.width,(e.clientY-r.top)*sigCanvas.height/r.height);ctx.stroke()});
 sigCanvas.addEventListener('pointerup',()=>state.signatureDrawing=false);sigCanvas.addEventListener('pointercancel',()=>state.signatureDrawing=false);
-async function applySignature(){const p=state.pages.find(x=>x.id===state.signaturePageId);if(!p)return;const sig=$('signatureCanvas');const blank=document.createElement('canvas');blank.width=sig.width;blank.height=sig.height;const a=sig.getContext('2d').getImageData(0,0,sig.width,sig.height).data;let ink=false;for(let i=3;i<a.length;i+=4){if(a[i]>0){ink=true;break}}if(!ink){toast('Draw your signature first');return}try{await ensureImagePage(p);const img=new Image();img.onload=async()=>{const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;const ctx=c.getContext('2d');ctx.drawImage(img,0,0);const w=Math.round(c.width*.34),h=Math.round(w*sig.height/sig.width);ctx.drawImage(sig,c.width-w-Math.round(c.width*.05),c.height-h-Math.round(c.height*.06),w,h);p.data=c.toDataURL('image/jpeg',.97);p.originalData=p.data;p.bwData=await basicThreshold(p.data);p.filter='original';p.mode='colour';p.name=(p.name||'Page')+' · Signed';closeSignature();renderPages();if($('documentView').classList.contains('active'))renderDocumentView();toast('Signature added to page')};img.onerror=()=>toast('Could not apply signature');img.src=p.data}catch(e){toast(e.message)}}
+async function applySignature(){
+  const p=state.pages.find(x=>x.id===state.signaturePageId);if(!p)return;
+  const sig=$('signatureCanvas');
+  const a=sig.getContext('2d').getImageData(0,0,sig.width,sig.height).data;
+  let ink=false;for(let i=3;i<a.length;i+=4){if(a[i]>0){ink=true;break}}
+  if(!ink){toast('Draw your signature first');return}
+  try{await ensureImagePage(p)}catch(e){toast(e.message);return}
+  const ratio=(sig.height/sig.width)||.33;
+  const w=.3,h=Math.min(.35,w*ratio);
+  const annot={id:newId(),kind:'image',src:sig.toDataURL('image/png'),x:(1-w)/2,y:.62,w,h};
+  (p.annotations=p.annotations||[]).push(annot);
+  state.selectedAnnotationId=annot.id;
+  closeSignature();renderPages();await renderDocumentView();
+  toast('Signature placed — drag it anywhere, then tap Done');
+}
 async function renderPdfPage(p,scale=2){if(!window.pdfjsLib)throw new Error('PDF preview engine unavailable');const doc=await pdfjsLib.getDocument({data:p.bytes.slice()}).promise;const pg=await doc.getPage(p.pageIndex+1);const v=pg.getViewport({scale});const c=document.createElement('canvas');c.width=Math.ceil(v.width);c.height=Math.ceil(v.height);await pg.render({canvasContext:c.getContext('2d'),viewport:v}).promise;return c.toDataURL('image/jpeg',.94)}
-async function ensureImagePage(p){if(p.type==='image')return p;p.data=await renderPdfPage(p,2);p.originalData=p.data;p.bwData=await basicThreshold(p.data);p.mode='colour';p.type='image';p.filter='original';p.rotation=(p.rotation||0);delete p.pdfDoc;delete p.bytes;delete p.pageIndex;delete p.sourceId;return p}
+async function ensureImagePage(p){if(p.type==='image')return p;p.data=await renderPdfPage(p,2);p.originalData=p.data;p.bwData=await basicThreshold(p.data);p.mode='colour';p.type='image';p.filter='document';p.lookData=null;p.rotation=(p.rotation||0);delete p.pdfDoc;delete p.bytes;delete p.pageIndex;delete p.sourceId;return p}
 function cropPage(id){const p=state.pages.find(x=>x.id===id);if(!p)return;if(p.type!=='image'){toast('Preparing this PDF page for editing…');ensureImagePage(p).then(()=>{renderPages();openCrop(p)}).catch(e=>toast(e.message));return}openCrop(p)}
 function openCrop(p){state.cropPageId=p.id;state.cropCorners=[{x:.08,y:.08},{x:.92,y:.08},{x:.92,y:.92},{x:.08,y:.92}];$('cropImage').src=p.data;$('cropModal').classList.add('open');$('cropImage').onload=()=>positionCropBox()}
 function positionCropBox(){const stage=$('cropStage'),img=$('cropImage'),svg=$('cropOverlay'),poly=$('cropPoly'),corners=state.cropCorners;if(!corners||!img.naturalWidth)return;const ir=img.getBoundingClientRect(),sr=stage.getBoundingClientRect();svg.setAttribute('viewBox',`0 0 ${sr.width} ${sr.height}`);const pts=corners.map(c=>({x:ir.left-sr.left+ir.width*c.x,y:ir.top-sr.top+ir.height*c.y}));poly.setAttribute('points',pts.map(p=>`${p.x},${p.y}`).join(' '));pts.forEach((p,i)=>{const h=$('cropHandle'+i);h.setAttribute('cx',p.x);h.setAttribute('cy',p.y)})}
@@ -716,8 +948,28 @@ $('cropOverlay').addEventListener('pointerdown',e=>{const handle=e.target.closes
 $('cropOverlay').addEventListener('pointermove',e=>{if(state.cropDragIndex==null)return;const img=$('cropImage'),r=img.getBoundingClientRect(),x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));state.cropCorners[state.cropDragIndex]={x,y};positionCropBox()});
 $('cropOverlay').addEventListener('pointerup',()=>{state.cropDragIndex=null});$('cropOverlay').addEventListener('pointercancel',()=>{state.cropDragIndex=null});
 function resetCrop(){state.cropCorners=[{x:.04,y:.04},{x:.96,y:.04},{x:.96,y:.96},{x:.04,y:.96}];positionCropBox()}
+// Perspective correction helper: snap the four handles onto the page outline the scanner
+// engine can find, so a slanted photo is straightened with one tap.
+async function autoDetectCrop(){
+  const p=state.pages.find(x=>x.id===state.cropPageId);if(!p)return;
+  const img=$('cropImage');if(!img||!img.naturalWidth){toast('Page is not ready yet');return}
+  const btn=document.querySelector('#cropModal button[onclick="autoDetectCrop()"]');
+  try{
+    if(btn){btn.disabled=true;btn.textContent='Detecting…'}
+    const w=img.naturalWidth,h=img.naturalHeight;
+    const c=document.createElement('canvas');c.width=w;c.height=h;
+    const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);
+    const data=ctx.getImageData(0,0,w,h).data;
+    const res=await scannerRequest({op:'detect',width:w,height:h,buffer:data.buffer},12000);
+    if(res&&res.quad&&res.quad.length===4){
+      state.cropCorners=res.quad.map(q=>({x:Math.max(0,Math.min(1,q[0])),y:Math.max(0,Math.min(1,q[1]))}));
+      positionCropBox();toast('Page edges detected — adjust if needed');
+    }else toast('Could not detect the page — drag the handles manually');
+  }catch(e){toast('Automatic detection is unavailable — drag the handles manually')}
+  finally{if(btn){btn.disabled=false;btn.textContent='Auto-detect page'}}
+}
 function closeCrop(){hideModal('cropModal');state.cropPageId=null;state.cropCorners=null;state.cropDragIndex=null}
-async function applyCrop(){const p=state.pages.find(x=>x.id===state.cropPageId);if(!p)return;const img=$('cropImage'),corners=state.cropCorners;if(!corners||corners.length!==4){toast('Adjust all four page corners');return}const px=corners.map(c=>({x:c.x*img.naturalWidth,y:c.y*img.naturalHeight}));const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);const w=Math.max(dist(px[0],px[1]),dist(px[3],px[2])),h=Math.max(dist(px[0],px[3]),dist(px[1],px[2]));if(w<50||h<50){toast('Select a larger page area');return}const outW=Math.max(2,Math.round(w)),outH=Math.max(2,Math.round(h));try{if(state.cvUnavailable)throw new Error('scanner engine unavailable');setScanProgress(true,'Correcting page corners…','Straightening the page in the background.');const buffer=canvasPixels(img,img.naturalWidth,img.naturalHeight),res=await scannerRequest({op:'warp',width:img.naturalWidth,height:img.naturalHeight,buffer,points:[px[0].x,px[0].y,px[1].x,px[1].y,px[2].x,px[2].y,px[3].x,px[3].y],outW,outH},45000);p.data=bufferToDataUrl(res.result,.97)}catch(e){console.warn('Perspective crop fallback',e);if(e&&e.fatal)state.cvUnavailable=true;const canvas=document.createElement('canvas');const minX=Math.min(...px.map(c=>c.x)),minY=Math.min(...px.map(c=>c.y)),maxX=Math.max(...px.map(c=>c.x)),maxY=Math.max(...px.map(c=>c.y));canvas.width=Math.max(2,Math.round(maxX-minX));canvas.height=Math.max(2,Math.round(maxY-minY));canvas.getContext('2d').drawImage(img,minX,minY,canvas.width,canvas.height,0,0,canvas.width,canvas.height);p.data=canvas.toDataURL('image/jpeg',.97)}p.originalData=p.data;p.bwData=await basicThreshold(p.data);p.mode='colour';p.filter='original';p.name=(p.name||'Page')+' · Perspective corrected';setScanProgress(false);closeCrop();renderPages();if($('documentView').classList.contains('active'))renderDocumentView();toast('Page corners corrected')}
+async function applyCrop(){const p=state.pages.find(x=>x.id===state.cropPageId);if(!p)return;const img=$('cropImage'),corners=state.cropCorners;if(!corners||corners.length!==4){toast('Adjust all four page corners');return}const px=corners.map(c=>({x:c.x*img.naturalWidth,y:c.y*img.naturalHeight}));const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);const w=Math.max(dist(px[0],px[1]),dist(px[3],px[2])),h=Math.max(dist(px[0],px[3]),dist(px[1],px[2]));if(w<50||h<50){toast('Select a larger page area');return}const outW=Math.max(2,Math.round(w)),outH=Math.max(2,Math.round(h));try{if(state.cvUnavailable)throw new Error('scanner engine unavailable');setScanProgress(true,'Correcting page corners…','Straightening the page in the background.');const buffer=canvasPixels(img,img.naturalWidth,img.naturalHeight),res=await scannerRequest({op:'warp',width:img.naturalWidth,height:img.naturalHeight,buffer,points:[px[0].x,px[0].y,px[1].x,px[1].y,px[2].x,px[2].y,px[3].x,px[3].y],outW,outH},45000);p.data=bufferToDataUrl(res.result,.97)}catch(e){console.warn('Perspective crop fallback',e);if(e&&e.fatal)state.cvUnavailable=true;const canvas=document.createElement('canvas');const minX=Math.min(...px.map(c=>c.x)),minY=Math.min(...px.map(c=>c.y)),maxX=Math.max(...px.map(c=>c.x)),maxY=Math.max(...px.map(c=>c.y));canvas.width=Math.max(2,Math.round(maxX-minX));canvas.height=Math.max(2,Math.round(maxY-minY));canvas.getContext('2d').drawImage(img,minX,minY,canvas.width,canvas.height,0,0,canvas.width,canvas.height);p.data=canvas.toDataURL('image/jpeg',.97)}p.originalData=p.data;p.bwData=await basicThreshold(p.data);p.mode='colour';p.filter='document';p.lookData=null;p.name=(p.name||'Page')+' · Perspective corrected';setScanProgress(false);closeCrop();renderPages();if($('documentView').classList.contains('active'))renderDocumentView();toast('Page corners corrected')}
 async function openScanner(){
   showView('pdf');
   $('cameraBody').innerHTML=`<div class="camera-wrap"><video id="cameraVideo" autoplay playsinline muted></video><div class="camera-guides" id="staticCameraGuides"></div><svg class="live-edge-layer" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"><polygon id="liveEdgePolygon" points=""></polygon></svg></div><div id="cameraScanStatus" class="hint" style="text-align:center;margin-top:8px">Starting camera…</div><div class="camera-actions"><button class="btn secondary" onclick="switchCamera()">↻ Flip</button><button class="shutter" aria-label="Capture page" onclick="capturePage()"></button><button class="btn secondary" onclick="document.getElementById('captureFallback').click()">Upload</button></div><p class="hint" style="text-align:center;margin-top:12px">Keep all four page corners visible, hold the camera steady and avoid shadows. The captured page opens in the full-page editor.</p>`;
@@ -773,15 +1025,27 @@ async function startLiveDetection(video){
 }
 function closeCamera(){stopCamera();hideModal('cameraModal')}
 async function switchCamera(){const next=state.cameraFacing==='environment'?'user':'environment';stopCamera();state.cameraFacing=next;try{state.cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:next},width:{ideal:1920},height:{ideal:1080}},audio:false});$('cameraVideo').srcObject=state.cameraStream;$('cameraVideo').onloadedmetadata=()=>startLiveDetection($('cameraVideo'));$('cameraVideo').play().catch(()=>{})}catch(e){toast('Could not switch camera')}}
-async function capturePage(){const video=$('cameraVideo');if(!video||!video.videoWidth){toast('Camera is not ready yet');return}const c=document.createElement('canvas');const scale=Math.min(1,3200/Math.max(video.videoWidth,video.videoHeight));c.width=Math.round(video.videoWidth*scale);c.height=Math.round(video.videoHeight*scale);c.getContext('2d',{willReadFrequently:true}).drawImage(video,0,0,c.width,c.height);const originalData=c.toDataURL('image/jpeg',.98);closeCamera();setScanProgress(true,'Scanning document…','Cleaning the page and enhancing the text.');try{const result=await processDocumentImage(originalData);const pageId=newId();state.pages.push({id:pageId,type:'image',data:result.data,bwData:result.bwData,originalData,mode:'colour',rotation:0,filter:'original',name:'Scanned page '+(state.pages.length+1),autoDetected:result.detected});state.activePageId=pageId;renderPages();showView('document');toast(result.detected?'Page scanned and straightened':'Colour scan enhanced · ready to edit')}catch(e){console.error(e);toast('Scan failed. Original photo was not lost. Try importing it from Photos.')}finally{setScanProgress(false)}}
+async function capturePage(){const video=$('cameraVideo');if(!video||!video.videoWidth){toast('Camera is not ready yet');return}const c=document.createElement('canvas');const scale=Math.min(1,3200/Math.max(video.videoWidth,video.videoHeight));c.width=Math.round(video.videoWidth*scale);c.height=Math.round(video.videoHeight*scale);c.getContext('2d',{willReadFrequently:true}).drawImage(video,0,0,c.width,c.height);const originalData=c.toDataURL('image/jpeg',.98);closeCamera();setScanProgress(true,'Scanning document…','Cleaning the page and enhancing the text.');try{const result=await processDocumentImage(originalData);const pageId=newId();state.pages.push({id:pageId,type:'image',data:result.data,bwData:result.bwData,originalData,mode:'colour',rotation:0,filter:'document',name:'Scanned page '+(state.pages.length+1),autoDetected:result.detected});state.activePageId=pageId;renderPages();showView('document');toast(result.detected?'Page scanned and straightened':'Colour scan enhanced · ready to edit')}catch(e){console.error(e);toast('Scan failed. Original photo was not lost. Try importing it from Photos.')}finally{setScanProgress(false)}}
 function downloadBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.rel='noopener';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000)}
 function dataUrlBlob(data){const [head,b64]=data.split(',');const mime=(head.match(/:(.*?);/)||[])[1]||'image/jpeg';const raw=atob(b64);const arr=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i);return new Blob([arr],{type:mime})}
-async function pageAsImage(p){if(p.type==='image'){const filter=p.filter||'original';if(filter==='original'&&p.mode==='original'&&p.originalData)return p.originalData;if((filter==='document'||filter==='bw'||p.mode==='document')&&p.bwData)return p.bwData;if(filter==='gray'){const source=await loadImageData(p.data);const c=document.createElement('canvas');c.width=source.naturalWidth;c.height=source.naturalHeight;const ctx=c.getContext('2d');ctx.filter='grayscale(1) contrast(1.06)';ctx.drawImage(source,0,0);return c.toDataURL('image/jpeg',.97)}return p.data}return await renderPdfPage(p,2)}
+async function pageAsImage(p){
+  if(p.type!=='image')return await renderPdfPage(p,2);
+  const look=scanLook(p.filter||'document');
+  if(look.id==='original')return p.originalData||p.data;
+  if(look.id==='bw')return p.bwData||p.data;
+  if(look.lazy){const made=await ensureLookData(p,look.id);if(made)return made}
+  const base=p.data||p.originalData;
+  if(!look.css||look.css==='none')return base;
+  const source=await loadImageData(base);
+  const c=document.createElement('canvas');c.width=source.naturalWidth;c.height=source.naturalHeight;
+  const ctx=c.getContext('2d');ctx.filter=look.css;ctx.drawImage(source,0,0);ctx.filter='none';
+  return c.toDataURL('image/jpeg',.97);
+}
 async function savePageImage(id){const p=state.pages.find(x=>x.id===id);if(!p)return;try{const result=await drawImageForPdf(p,94);downloadBlob(result.blob,`Mindiw-Scan-Page-${state.pages.indexOf(p)+1}.jpg`);toast('Image download started')}catch(e){toast(e.message)}}
 async function sharePageImage(id){const p=state.pages.find(x=>x.id===id);if(!p)return;try{const result=await drawImageForPdf(p,94);await shareBlob(result.blob,`Mindiw-Scan-Page-${state.pages.indexOf(p)+1}.jpg`)}catch(e){toast(e.message)}}
 async function shareLastPdf(){if(!state.lastPdf){toast('Create a PDF first, then share it');return}await shareBlob(state.lastPdf.blob,state.lastPdf.name)}
 async function saveAllImages(){if(!state.pages.length){toast('No pages to save');return}for(let i=0;i<state.pages.length;i++){try{const result=await drawImageForPdf(state.pages[i],94);downloadBlob(result.blob,`Mindiw-Scan-Page-${i+1}.jpg`)}catch(e){console.error(e)}}toast('Image downloads started')}
-function drawImageForPdf(p,quality){return new Promise(async(resolve,reject)=>{try{const image=new Image();image.onload=()=>{const angle=((p.rotation||0)%360+360)%360,swap=angle===90||angle===270;const maxSide=3200;let w=image.naturalWidth,h=image.naturalHeight,scale=Math.min(1,maxSide/Math.max(w,h));w=Math.round(w*scale);h=Math.round(h*scale);const c=document.createElement('canvas');c.width=swap?h:w;c.height=swap?w:h;const ctx=c.getContext('2d');ctx.translate(c.width/2,c.height/2);ctx.rotate(angle*Math.PI/180);ctx.filter=p.filter==='gray'?'grayscale(1)':p.filter==='bw'?'grayscale(1) contrast(2.1)':p.filter==='document'?'contrast(1.22) brightness(1.08)':'none';ctx.drawImage(image,-w/2,-h/2,w,h);ctx.filter='none';let q=quality/100;resolve({blob:dataUrlBlob(c.toDataURL('image/jpeg',q)),width:c.width,height:c.height})};image.onerror=()=>reject(new Error('Could not process a scan image'));image.src=await pageAsImage(p)}catch(e){reject(e)}})}
+function drawImageForPdf(p,quality){return new Promise(async(resolve,reject)=>{try{const image=new Image();image.onload=async()=>{try{const angle=((p.rotation||0)%360+360)%360,swap=angle===90||angle===270;const maxSide=3200;let w=image.naturalWidth,h=image.naturalHeight,scale=Math.min(1,maxSide/Math.max(w,h));w=Math.round(w*scale);h=Math.round(h*scale);const c=document.createElement('canvas');c.width=swap?h:w;c.height=swap?w:h;const ctx=c.getContext('2d');ctx.translate(c.width/2,c.height/2);ctx.rotate(angle*Math.PI/180);ctx.drawImage(image,-w/2,-h/2,w,h);ctx.setTransform(1,0,0,1,0,0);await drawAnnotations(ctx,c.width,c.height,p);resolve({blob:dataUrlBlob(c.toDataURL('image/jpeg',quality/100)),width:c.width,height:c.height})}catch(e){reject(e)}};image.onerror=()=>reject(new Error('Could not process a scan image'));image.src=await pageAsImage(p)}catch(e){reject(e)}})}
 async function exportPdf(){if(!state.pages.length){toast('Add pages first');return}if(!window.PDFLib){toast('PDF engine unavailable. Check your connection.');return}const btn=document.querySelector('#createBar button');btn.disabled=true;btn.textContent='Creating PDF…';try{const {PDFDocument,StandardFonts,rgb,degrees}=PDFLib;const out=await PDFDocument.create();const name=($('docName').value.trim()||'Mindiw Document').replace(/[\\/:*?"<>|]/g,'-').slice(0,70);const paper=$('paperSize').value,quality=Number($('quality').value);let dims=paper==='Letter'?[612,792]:[595.28,841.89];for(let i=0;i<state.pages.length;i++){const p=state.pages[i];if(p.type==='pdf'){const [copy]=await out.copyPages(p.pdfDoc,[p.pageIndex]);const existing=copy.getRotation().angle||0;copy.setRotation(degrees((existing+(p.rotation||0))%360));out.addPage(copy)}else{const result=await drawImageForPdf(p,quality);const img=await out.embedJpg(new Uint8Array(await result.blob.arrayBuffer()));let size=dims;if(paper==='fit'){const scale=Math.min(595.28/result.width,841.89/result.height);size=[result.width*scale,result.height*scale]}const page=out.addPage(size);const margin=paper==='fit'?0:22;const maxW=size[0]-margin*2,maxH=size[1]-margin*2;const scale=Math.min(maxW/result.width,maxH/result.height);const w=result.width*scale,h=result.height*scale;page.drawImage(img,{x:(size[0]-w)/2,y:(size[1]-h)/2,width:w,height:h})}if($('pageNumbers').checked){const page=out.getPage(out.getPageCount()-1);const font=await out.embedFont(StandardFonts.Helvetica);page.drawText(`${i+1} / ${state.pages.length}`,{x:page.getWidth()-65,y:12,size:8,font,color:rgb(.42,.46,.53)})}}
 const bytes=await out.save();const blob=new Blob([bytes],{type:'application/pdf'});const fileName=name.toLowerCase().endsWith('.pdf')?name:name+'.pdf';downloadBlob(blob,fileName);state.lastPdf={blob,name:fileName};await saveToLibrary(blob,fileName);toast('PDF created and downloaded');}catch(err){console.error(err);toast('Could not create PDF: '+(err.message||'Unknown error'))}finally{btn.disabled=false;btn.textContent='↓ Create & Download PDF'}}
 async function splitPdf(){if(!state.pages.length){toast('Import a PDF or add pages first');return}if(!window.JSZip){await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js').catch(()=>{});}if(!window.JSZip){toast('Split feature needs an internet connection');return}try{const zip=new JSZip();const {PDFDocument,degrees}=PDFLib;for(let i=0;i<state.pages.length;i++){const p=state.pages[i],d=await PDFDocument.create();if(p.type==='pdf'){const [copy]=await d.copyPages(p.pdfDoc,[p.pageIndex]);copy.setRotation(degrees(((copy.getRotation().angle||0)+(p.rotation||0))%360));d.addPage(copy)}else{const result=await drawImageForPdf(p,90);const image=await d.embedJpg(new Uint8Array(await result.blob.arrayBuffer()));const page=d.addPage([595.28,841.89]);const scale=Math.min(551.28/result.width,797.89/result.height);const w=result.width*scale,h=result.height*scale;page.drawImage(image,{x:(595.28-w)/2,y:(841.89-h)/2,width:w,height:h})}zip.file(`page-${String(i+1).padStart(2,'0')}.pdf`,await d.save())}const blob=await zip.generateAsync({type:'blob'});downloadBlob(blob,'Mindiw-Split-Pages.zip');toast('Split PDF ZIP created')}catch(e){toast('Could not split pages: '+e.message)}}
@@ -812,6 +1076,25 @@ function validateQrUrl(input){let value=input.trim();if(!value)throw new Error('
   if(!/^[a-z0-9.-]+$/i.test(parsed.hostname)||parsed.hostname.startsWith('.')||parsed.hostname.endsWith('.'))throw new Error('The domain name contains invalid characters.');
   return parsed.href;
 }
+// Beyond the format checks above, confirm the domain actually exists. A lightweight DNS
+// lookup (no page fetch, so no CORS or privacy concerns) catches mistyped links quickly.
+async function verifyQrUrlExists(href){
+  let host;try{host=new URL(href).hostname}catch(e){return null}
+  if(!host||host==='localhost'||/^\d{1,3}(\.\d{1,3}){3}$/.test(host))return null;
+  const resolvers=['https://dns.google/resolve?type=A&name='+encodeURIComponent(host),'https://cloudflare-dns.com/dns-query?type=A&name='+encodeURIComponent(host)];
+  for(const endpoint of resolvers){
+    try{
+      const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),4500);
+      const res=await fetch(endpoint,{headers:{accept:'application/dns-json'},signal:ctrl.signal});
+      clearTimeout(timer);
+      if(!res.ok)continue;
+      const data=await res.json();
+      if(data.Status===3)return false;
+      if(data.Status===0)return true;
+    }catch(e){/* resolver unreachable — try the next, then give the address the benefit of the doubt */}
+  }
+  return null;
+}
 async function ensureQrEngine(){if(window.MindiwQRCode&&window.MindiwQRCode.QRCode)return window.MindiwQRCode;throw new Error('The local QR engine is missing. Re-upload qr-engine.js beside index.html and reload the app.')}
 function qrMatrixToSvg(qr,quiet=4){const count=qr.getModuleCount(),size=count+quiet*2;let path='';for(let row=0;row<count;row++){for(let col=0;col<count;col++){if(qr.modules[row][col])path+=`M${col+quiet} ${row+quiet}h1v1h-1z`;}}return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="${path}" fill="#000"/></svg>`}
 function qrSvgToCanvas(svg,size=1024){return new Promise((resolve,reject)=>{const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'});const url=URL.createObjectURL(blob);const img=new Image();img.onload=()=>{try{const canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas is unavailable in this browser.');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,size,size);ctx.imageSmoothingEnabled=false;ctx.drawImage(img,0,0,size,size);URL.revokeObjectURL(url);resolve(canvas)}catch(e){URL.revokeObjectURL(url);reject(e)}};img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('The QR image could not be rendered.'))};img.src=url;});}
@@ -819,8 +1102,15 @@ async function makeQr(){
   const btn=$('generateQrBtn'),error=$('qrError');clearQrResult();const raw=$('qrText').value.trim();if(!raw){error.textContent=$('qrType').value==='url'?'Enter a website address first.':'Enter some text first.';$('qrText').focus();return;}
   let value=raw;
   try{
-    if($('qrType').value==='url')value=validateQrUrl(raw);
+    const isUrl=$('qrType').value==='url';
+    if(isUrl)value=validateQrUrl(raw);
     btn.disabled=true;btn.textContent='Generating…';
+    if(isUrl){
+      btn.textContent='Checking link…';
+      const exists=await verifyQrUrlExists(value);
+      if(exists===false)throw new Error('This website address could not be found. Check the spelling and try the full link, for example https://example.com.');
+      btn.textContent='Generating…';
+    }
     const engine=await ensureQrEngine();
     const qr=new engine.QRCode(-1,engine.ErrorCorrectLevel.H);qr.addData(value);qr.make();
     const svg=qrMatrixToSvg(qr,4);const canvas=await qrSvgToCanvas(svg,1024);
@@ -834,7 +1124,44 @@ function transformText(kind){const el=$('textInput');if(kind==='upper')el.value=
 function countWords(){const t=$('textInput').value.trim();const words=t?t.split(/\s+/).length:0;$('textResult').textContent=`${words} words · ${t.length} characters · ${t? t.split(/\n/).length:0} lines`}
 // Native sharing, install and PWA
 async function shareBlob(blob,name){const file=new File([blob],name,{type:blob.type});if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name});return}catch(e){if(e.name==='AbortError')return}}downloadBlob(blob,name);toast('Sharing is not supported here, so the file was downloaded instead')}
-function installApp(){showView('settings');const info=$('installInstructions');if(info){info.scrollIntoView({behavior:'smooth',block:'center'})}}
+// PWA install: keep the browser's install event so the button can open the real system
+// prompt instead of only pointing at the manual instructions.
+let deferredInstallPrompt=null;
+function isAppInstalled(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true}
+function updateInstallUi(){
+  const btn=$('installBtn'),hint=$('installHint');if(!btn)return;
+  if(isAppInstalled()){
+    btn.disabled=true;btn.textContent='✓ Installed';
+    if(hint)hint.textContent='Mindiw Toolbox is installed. Open it from your home screen or app list.';
+    return;
+  }
+  btn.disabled=false;btn.textContent='＋ Install Mindiw Toolbox';
+  if(hint){
+    hint.textContent=deferredInstallPrompt
+      ?'Tap Install and your browser will ask you to confirm adding Mindiw Toolbox to this device.'
+      :'If no install pop-up appears, add it from your browser menu. Android: menu → Install app. iPhone: Share → Add to Home Screen.';
+  }
+}
+async function installApp(){
+  if(isAppInstalled()){showView('settings');toast('Mindiw Toolbox is already installed');return}
+  const prompt=deferredInstallPrompt;
+  if(prompt){
+    deferredInstallPrompt=null;
+    try{
+      prompt.prompt();
+      const choice=await prompt.userChoice;
+      toast(choice&&choice.outcome==='accepted'?'Installing Mindiw Toolbox…':'Install dismissed — you can install any time from the browser menu');
+    }catch(e){console.warn('Install prompt failed',e);toast('Could not open the install prompt — use your browser menu instead')}
+    updateInstallUi();
+    return;
+  }
+  showView('settings');
+  const info=$('installInstructions');if(info)info.scrollIntoView({behavior:'smooth',block:'center'});
+  toast('Use your browser menu to install this app');
+}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;updateInstallUi()});
+window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;updateInstallUi();toast('Mindiw Toolbox installed')});
+updateInstallUi();
 if('serviceWorker' in navigator && location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW unavailable',e)))}
 // Preload the document scanner engine in the background so the first scan runs instantly.
 window.addEventListener('load',()=>setTimeout(()=>{if(state.cvUnavailable)return;try{getScannerWorker().postMessage({op:'warm',id:0})}catch(e){}},900));
@@ -848,7 +1175,7 @@ renderPages();
 </script>
 <script>
 // Expose only the small inline-handler surface used by this standalone app.
-window.showView=showView;window.clearWorkspace=clearWorkspace;window.continueToExport=continueToExport;window.togglePageMode=togglePageMode;window.openScanner=openScanner;window.closeCamera=closeCamera;window.switchCamera=switchCamera;window.capturePage=capturePage;window.movePage=movePage;window.rotatePage=rotatePage;window.cycleFilter=cycleFilter;window.signPage=signPage;window.closeSignature=closeSignature;window.clearSignature=clearSignature;window.applySignature=applySignature;window.cropPage=cropPage;window.deletePage=deletePage;window.savePageImage=savePageImage;window.sharePageImage=sharePageImage;window.shareLastPdf=shareLastPdf;window.exportPdf=exportPdf;window.splitPdf=splitPdf;window.runOcr=runOcr;window.saveAllImages=saveAllImages;window.closeCrop=closeCrop;window.resetCrop=resetCrop;window.applyCrop=applyCrop;window.closeOcr=closeOcr;window.copyOcr=copyOcr;window.downloadOcr=downloadOcr;window.loadLibrary=loadLibrary;window.downloadLibrary=downloadLibrary;window.deleteLibrary=deleteLibrary;window.exportImage=exportImage;window.makeQr=makeQr;window.downloadQr=downloadQr;window.copyQrValue=copyQrValue;window.selectActivePage=selectActivePage;window.openPageEditor=openPageEditor;window.transformText=transformText;window.countWords=countWords;window.installApp=installApp;
+window.showView=showView;window.clearWorkspace=clearWorkspace;window.continueToExport=continueToExport;window.togglePageMode=togglePageMode;window.openScanner=openScanner;window.closeCamera=closeCamera;window.switchCamera=switchCamera;window.capturePage=capturePage;window.movePage=movePage;window.rotatePage=rotatePage;window.cycleFilter=cycleFilter;window.applyScanLook=applyScanLook;window.addTextAnnotation=addTextAnnotation;window.closeTextModal=closeTextModal;window.applyTextAnnotation=applyTextAnnotation;window.finishAnnotation=finishAnnotation;window.deleteSelectedAnnotation=deleteSelectedAnnotation;window.signPage=signPage;window.closeSignature=closeSignature;window.clearSignature=clearSignature;window.applySignature=applySignature;window.cropPage=cropPage;window.deletePage=deletePage;window.savePageImage=savePageImage;window.sharePageImage=sharePageImage;window.shareLastPdf=shareLastPdf;window.exportPdf=exportPdf;window.splitPdf=splitPdf;window.runOcr=runOcr;window.saveAllImages=saveAllImages;window.closeCrop=closeCrop;window.resetCrop=resetCrop;window.applyCrop=applyCrop;window.autoDetectCrop=autoDetectCrop;window.closeOcr=closeOcr;window.copyOcr=copyOcr;window.downloadOcr=downloadOcr;window.loadLibrary=loadLibrary;window.downloadLibrary=downloadLibrary;window.deleteLibrary=deleteLibrary;window.exportImage=exportImage;window.makeQr=makeQr;window.downloadQr=downloadQr;window.copyQrValue=copyQrValue;window.selectActivePage=selectActivePage;window.openPageEditor=openPageEditor;window.transformText=transformText;window.countWords=countWords;window.installApp=installApp;window.updateInstallUi=updateInstallUi;window.isAppInstalled=isAppInstalled;
 </script>
 </body>
 </html>
